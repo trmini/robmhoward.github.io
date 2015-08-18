@@ -141,7 +141,7 @@ wordSamplesApp.controller("SamplesController", function ($scope, wordSamplesFact
     };
 
     $scope.runSelectedSample = function () {
-        var script = MonacoEditorIntegration.getJavaScriptToRun().replace("console.log", "logComment");
+        var script = MonacoEditorIntegration.getJavaScriptToRun().replace(/console\.log/g, "logComment");
         script = "try {" + script + "} catch (e) { logComment(\"Exception: \" + e.message ? e.message : e);}";
 
         logComment("====="); // Add separators between executions
