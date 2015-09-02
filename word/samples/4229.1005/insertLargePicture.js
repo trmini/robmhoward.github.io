@@ -7,17 +7,17 @@ ctx.load(paras);
 ctx.references.add(paras)
 
 ctx.executeAsync()
-    .then(function() {
+    .then(function() {
         for (var i = 0; i < 1; i++) {
             paras.items[0].insertInlinePictureFromBase64(base64_img, Word.InsertLocation.end);
         }
         ctx.references.remove(paras);
     })
     .then(ctx.executeAsync)
-    .then(function() {
-            var t1 = performance.now();
-            RichApiTest.log.comment("Elapsed time = " + (t1 - t0)/1000);
+    .then(function() {
+        var t1 = performance.now();
+        console.log("Elapsed time = " + (t1 - t0)/1000);
     })
     .catch(function(error) {
-        RichApiTest.log.comment(JSON.stringify(error));
+        console.log(JSON.stringify(error));
     });
