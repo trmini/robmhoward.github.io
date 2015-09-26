@@ -1,5 +1,5 @@
-/* Word specific JavaScript API library */
-/* Version: 16.0.6224.3000 */
+/* Word iOS specific JavaScript API library */
+/* Version: 16.0.6216.3007 */
 /*
 	Copyright (c) Microsoft Corporation.  All rights reserved.
 */
@@ -2794,41 +2794,40 @@ OSF.DDA.SafeArray.Delegate.executeAsync=function OSF_DDA_SafeArray_Delegate$Exec
 
 					args._chunkResultData[payload[0]]=payload[1];
 				}
-				return false;
-			}
-			if (args.onReceiving) {
-				args.onReceiving();
-			}
-			if (args.onComplete) {
-				var payload;
-				if (status==OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
-					if (result.length > 2) {
-						payload=[];
-						for (var i=1; i < result.length; i++)
-							payload[i - 1]=result[i];
+			} else {
+				if (args.onReceiving) {
+					args.onReceiving();
+				}
+				if (args.onComplete) {
+					var payload;
+					if (status==OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
+						if (result.length > 2) {
+							payload=[];
+							for (var i=1; i < result.length; i++)
+								payload[i - 1]=result[i];
+						} else {
+							payload=result[OSF.DDA.SafeArray.Response.Payload];
+						}
+						if (args._chunkResultData) {
+							payload=fromSafeArray(payload);
+							if (payload !=null) {
+								var expectedChunkCount=payload[payload.length - 1];
+								if (args._chunkResultData.length==expectedChunkCount) {
+									payload[payload.length - 1]=args._chunkResultData;
+								} else {
+									status=OSF.DDA.ErrorCodeManager.errorCodes.ooeInternalError;
+								}
+							}
+						}
 					} else {
 						payload=result[OSF.DDA.SafeArray.Response.Payload];
 					}
-					if (args._chunkResultData) {
-						payload=fromSafeArray(payload);
-						if (payload !=null) {
-							var expectedChunkCount=payload[payload.length - 1];
-							if (args._chunkResultData.length==expectedChunkCount) {
-								payload[payload.length - 1]=args._chunkResultData;
-							} else {
-								status=OSF.DDA.ErrorCodeManager.errorCodes.ooeInternalError;
-							}
-						}
-					}
-				} else {
-					payload=result[OSF.DDA.SafeArray.Response.Payload];
+					args.onComplete(status, payload);
 				}
-				args.onComplete(status, payload);
+				if (OSF.AppTelemetry) {
+					OSF.AppTelemetry.onMethodDone(args.dispId, args.hostCallArgs, Math.abs((new Date()).getTime() - startTime), status);
+				}
 			}
-			if (OSF.AppTelemetry) {
-				OSF.AppTelemetry.onMethodDone(args.dispId, args.hostCallArgs, Math.abs((new Date()).getTime() - startTime), status);
-			}
-			return true;
 		});
 	} catch (ex) {
 		OSF.DDA.SafeArray.Delegate._onException(ex, args);
@@ -3131,10 +3130,9 @@ var OSFWebkit;
 			WebkitScriptMessaging.prototype.agaveHostCallback=function (callbackId, params) {
 				var callbackFunction=this.callbackList[callbackId];
 				if (callbackFunction) {
-					var callbacksDone=callbackFunction(params);
-					if (callbacksDone===undefined || callbacksDone===true) {
-						delete this.callbackList[callbackId];
-					}
+					callbackFunction(params);
+
+					delete this.callbackList[callbackId];
 				}
 			};
 
@@ -3242,7 +3240,7 @@ var OSFWebkit;
 					safeArraySource=payload[1];
 				}
 				if (callback) {
-					return callback(new OSFWebkit.WebkitSafeArray(safeArraySource));
+					callback(new OSFWebkit.WebkitSafeArray(safeArraySource));
 				}
 			};
 			this.hostScriptProxy.invokeMethod(OSF.Webkit.MessageHandlerName, OSF.Webkit.MethodId.Execute, hostParams, agaveResponseCallback);
@@ -3261,14 +3259,14 @@ var OSFWebkit;
 			};
 			var agaveResponseCallback=function (payload) {
 				if (callback) {
-					return callback(new OSFWebkit.WebkitSafeArray(payload));
+					callback(new OSFWebkit.WebkitSafeArray(payload));
 				}
 			};
 			this.hostScriptProxy.registerEvent(OSF.Webkit.MessageHandlerName, OSF.Webkit.MethodId.RegisterEvent, id, targetId, agaveEventHandlerCallback, agaveResponseCallback);
 		};
 		WebkitHostController.prototype.unregisterEvent=function (id, targetId, callback) {
 			var agaveResponseCallback=function (response) {
-				return callback(new OSFWebkit.WebkitSafeArray(response));
+				callback(new OSFWebkit.WebkitSafeArray(response));
 			};
 			this.hostScriptProxy.unregisterEvent(OSF.Webkit.MessageHandlerName, OSF.Webkit.MethodId.UnregisterEvent, id, targetId, agaveResponseCallback);
 		};
@@ -6939,7 +6937,7 @@ var OfficeExtension;
 				if (!context._processingResult) {
 					OfficeExtension.ActionFactory.createInstantiateAction(context, this);
 					if ((context._autoCleanup) && (this._KeepReference)) {
-						context.references._autoAdd(this);
+						context.trackedObjects._autoAdd(this);
 					}
 				}
 			}
@@ -7085,7 +7083,6 @@ var OfficeExtension;
 			this._processingResult=false;
 			this._customData=OfficeExtension.Constants.iterativeExecutor;
 			this._requestExecutor=new OfficeExtension.OfficeJsRequestExecutor();
-			this.executeAsync=this.executeAsync.bind(this);
 			this.sync=this.sync.bind(this);
 		}
 		Object.defineProperty(ClientRequestContext.prototype, "_pendingRequest", {
@@ -7098,19 +7095,12 @@ var OfficeExtension;
 			enumerable: true,
 			configurable: true
 		});
-		Object.defineProperty(ClientRequestContext.prototype, "references", {
-			get: function () {
-				return this.trackedObjects;
-			},
-			enumerable: true,
-			configurable: true
-		});
 		Object.defineProperty(ClientRequestContext.prototype, "trackedObjects", {
 			get: function () {
-				if (!this.m_references) {
-					this.m_references=new OfficeExtension.References(this);
+				if (!this.m_trackedObjects) {
+					this.m_trackedObjects=new OfficeExtension.TrackedObjects(this);
 				}
-				return this.m_references;
+				return this.m_trackedObjects;
 			},
 			enumerable: true,
 			configurable: true
@@ -7179,7 +7169,7 @@ var OfficeExtension;
 			}
 			return args;
 		};
-		ClientRequestContext.prototype.executeAsyncPrivate=function (doneCallback, failCallback) {
+		ClientRequestContext.prototype.syncPrivate=function (doneCallback, failCallback) {
 			var req=this._pendingRequest;
 			if (!req.hasActions) {
 				doneCallback();
@@ -7235,14 +7225,11 @@ var OfficeExtension;
 				}
 			});
 		};
-		ClientRequestContext.prototype.executeAsync=function (passThroughValue) {
-			return this.sync(passThroughValue);
-		};
 		ClientRequestContext.prototype.sync=function (passThroughValue) {
 			var _this=this;
 			OfficeExtension._EnsurePromise();
 			return new OfficeExtension['Promise'](function (resolve, reject) {
-				_this.executeAsyncPrivate(function () {
+				_this.syncPrivate(function () {
 					resolve(passThroughValue);
 				}, function (error) {
 					reject(error);
@@ -7264,18 +7251,18 @@ var OfficeExtension;
 				ctx._autoCleanup=true;
 				var batchResult=batch(ctx);
 				if (OfficeExtension.Utility.isNullOrUndefined(batchResult) || (typeof batchResult.then !=='function')) {
-					OfficeExtension.Utility.throwError(OfficeExtension.ResourceStrings.runTaskAsyncMustReturnPromise);
+					OfficeExtension.Utility.throwError(OfficeExtension.ResourceStrings.runMustReturnPromise);
 				}
 				return batchResult;
 			}).then(function (batchResult) {
-				return ctx.executeAsync(batchResult);
+				return ctx.sync(batchResult);
 			}).then(function (result) {
 				succeeded=true;
 				resultOrError=result;
 			}).catch(function (error) {
 				resultOrError=error;
 			}).then(function () {
-				var itemsToRemove=ctx.references._retrieveAndClearAutoCleanupList();
+				var itemsToRemove=ctx.trackedObjects._retrieveAndClearAutoCleanupList();
 				ctx._autoCleanup=false;
 				for (var key in itemsToRemove) {
 					itemsToRemove[key]._objectPath.isValid=false;
@@ -7285,9 +7272,9 @@ var OfficeExtension;
 				function attemptCleanup() {
 					cleanupCounter++;
 					for (var key in itemsToRemove) {
-						ctx.references.remove(itemsToRemove[key]);
+						ctx.trackedObjects.remove(itemsToRemove[key]);
 					}
-					ctx.executeAsync().then(function () {
+					ctx.sync().then(function () {
 						if (onCleanupSuccess) {
 							onCleanupSuccess(cleanupCounter);
 						}
@@ -7391,7 +7378,6 @@ var OfficeExtension;
 		_Internal.RuntimeError=RuntimeError;
 	})(_Internal=OfficeExtension._Internal || (OfficeExtension._Internal={}));
 	OfficeExtension.Error=OfficeExtension._Internal.RuntimeError;
-	OfficeExtension.RuntimeError=OfficeExtension._Internal.RuntimeError;
 })(OfficeExtension || (OfficeExtension={}));
 var OfficeExtension;
 (function (OfficeExtension) {
@@ -8387,12 +8373,12 @@ var OfficeExtension;
 })(OfficeExtension || (OfficeExtension={}));
 var OfficeExtension;
 (function (OfficeExtension) {
-	var References=(function () {
-		function References(context) {
+	var TrackedObjects=(function () {
+		function TrackedObjects(context) {
 			this._autoCleanupList={};
 			this.m_context=context;
 		}
-		References.prototype.add=function (param) {
+		TrackedObjects.prototype.add=function (param) {
 			var _this=this;
 			if (Array.isArray(param)) {
 				param.forEach(function (item) { return _this._addCommon(item, true); });
@@ -8401,11 +8387,11 @@ var OfficeExtension;
 				this._addCommon(param, true);
 			}
 		};
-		References.prototype._autoAdd=function (object) {
+		TrackedObjects.prototype._autoAdd=function (object) {
 			this._addCommon(object, false);
 			this._autoCleanupList[object._objectPath.objectPathInfo.Id]=object;
 		};
-		References.prototype._addCommon=function (object, isExplicitlyAdded) {
+		TrackedObjects.prototype._addCommon=function (object, isExplicitlyAdded) {
 			var referenceId=object[OfficeExtension.Constants.referenceId];
 			if (OfficeExtension.Utility.isNullOrEmptyString(referenceId) && object._KeepReference) {
 				object._KeepReference();
@@ -8415,7 +8401,7 @@ var OfficeExtension;
 				}
 			}
 		};
-		References.prototype.remove=function (param) {
+		TrackedObjects.prototype.remove=function (param) {
 			var _this=this;
 			if (Array.isArray(param)) {
 				param.forEach(function (item) { return _this._removeCommon(item); });
@@ -8424,7 +8410,7 @@ var OfficeExtension;
 				this._removeCommon(param);
 			}
 		};
-		References.prototype._removeCommon=function (object) {
+		TrackedObjects.prototype._removeCommon=function (object) {
 			var referenceId=object[OfficeExtension.Constants.referenceId];
 			if (!OfficeExtension.Utility.isNullOrEmptyString(referenceId)) {
 				var rootObject=this.m_context._rootObject;
@@ -8433,14 +8419,14 @@ var OfficeExtension;
 				}
 			}
 		};
-		References.prototype._retrieveAndClearAutoCleanupList=function () {
+		TrackedObjects.prototype._retrieveAndClearAutoCleanupList=function () {
 			var list=this._autoCleanupList;
 			this._autoCleanupList={};
 			return list;
 		};
-		return References;
+		return TrackedObjects;
 	})();
-	OfficeExtension.References=References;
+	OfficeExtension.TrackedObjects=TrackedObjects;
 })(OfficeExtension || (OfficeExtension={}));
 var OfficeExtension;
 (function (OfficeExtension) {
@@ -8451,7 +8437,7 @@ var OfficeExtension;
 		ResourceStrings.propertyNotLoaded="PropertyNotLoaded";
 		ResourceStrings.invalidRequestContext="InvalidRequestContext";
 		ResourceStrings.invalidArgument="InvalidArgument";
-		ResourceStrings.runTaskAsyncMustReturnPromise="RunTaskAsyncMustReturnPromise";
+		ResourceStrings.runMustReturnPromise="RunMustReturnPromise";
 		return ResourceStrings;
 	})();
 	OfficeExtension.ResourceStrings=ResourceStrings;
@@ -8527,9 +8513,6 @@ var OfficeExtension;
 		function Utility() {
 		}
 		Utility.checkArgumentNull=function (value, name) {
-			if (Utility.isNullOrUndefined(value)) {
-				Utility.throwError(OfficeExtension.ResourceStrings.invalidArgument, name);
-			}
 		};
 		Utility.isNullOrUndefined=function (value) {
 			if (value===null) {
@@ -8875,9 +8858,6 @@ var Word;
 		Body.prototype.insertHtml=function (html, insertLocation) {
 			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertHtml", 0 , [html, insertLocation], false, true));
 		};
-		Body.prototype.insertInlinePictureFromBase64=function (base64EncodedImage, insertLocation) {
-			return new Word.InlinePicture(this.context, _createMethodObjectPath(this.context, this, "InsertInlinePictureFromBase64", 0 , [base64EncodedImage, insertLocation], false, true));
-		};
 		Body.prototype.insertOoxml=function (ooxml, insertLocation) {
 			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertOoxml", 0 , [ooxml, insertLocation], false, true));
 		};
@@ -8891,8 +8871,8 @@ var Word;
 			searchOptions=_normalizeSearchOptions(this.context, searchOptions);
 			return new Word.SearchResultCollection(this.context, _createMethodObjectPath(this.context, this, "Search", 1 , [searchText, searchOptions], true, true));
 		};
-		Body.prototype.select=function (selectionMode) {
-			_createMethodAction(this.context, this, "Select", 1 , [selectionMode]);
+		Body.prototype.select=function () {
+			_createMethodAction(this.context, this, "Select", 1 , []);
 		};
 		Body.prototype._KeepReference=function () {
 			_createMethodAction(this.context, this, "_KeepReference", 1 , []);
@@ -9145,9 +9125,6 @@ var Word;
 		ContentControl.prototype.insertHtml=function (html, insertLocation) {
 			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertHtml", 0 , [html, insertLocation], false, true));
 		};
-		ContentControl.prototype.insertInlinePictureFromBase64=function (base64EncodedImage, insertLocation) {
-			return new Word.InlinePicture(this.context, _createMethodObjectPath(this.context, this, "InsertInlinePictureFromBase64", 0 , [base64EncodedImage, insertLocation], false, true));
-		};
 		ContentControl.prototype.insertOoxml=function (ooxml, insertLocation) {
 			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertOoxml", 0 , [ooxml, insertLocation], false, true));
 		};
@@ -9161,8 +9138,8 @@ var Word;
 			searchOptions=_normalizeSearchOptions(this.context, searchOptions);
 			return new Word.SearchResultCollection(this.context, _createMethodObjectPath(this.context, this, "Search", 1 , [searchText, searchOptions], true, true));
 		};
-		ContentControl.prototype.select=function (selectionMode) {
-			_createMethodAction(this.context, this, "Select", 1 , [selectionMode]);
+		ContentControl.prototype.select=function () {
+			_createMethodAction(this.context, this, "Select", 1 , []);
 		};
 		ContentControl.prototype._KeepReference=function () {
 			_createMethodAction(this.context, this, "_KeepReference", 1 , []);
@@ -9576,16 +9553,6 @@ var Word;
 		function InlinePicture() {
 			_super.apply(this, arguments);
 		}
-		Object.defineProperty(InlinePicture.prototype, "paragraph", {
-			get: function () {
-				if (!this.m_paragraph) {
-					this.m_paragraph=new Word.Paragraph(this.context, _createPropertyObjectPath(this.context, this, "Paragraph", false, false));
-				}
-				return this.m_paragraph;
-			},
-			enumerable: true,
-			configurable: true
-		});
 		Object.defineProperty(InlinePicture.prototype, "parentContentControl", {
 			get: function () {
 				if (!this.m_parentContentControl) {
@@ -9684,41 +9651,14 @@ var Word;
 			enumerable: true,
 			configurable: true
 		});
-		InlinePicture.prototype.delete=function () {
-			_createMethodAction(this.context, this, "Delete", 0 , []);
-		};
 		InlinePicture.prototype.getBase64ImageSrc=function () {
 			var action=_createMethodAction(this.context, this, "GetBase64ImageSrc", 1 , []);
 			var ret=new OfficeExtension.ClientResult();
 			_addActionResultHandler(this, action, ret);
 			return ret;
 		};
-		InlinePicture.prototype.insertBreak=function (breakType, insertLocation) {
-			_createMethodAction(this.context, this, "InsertBreak", 0 , [breakType, insertLocation]);
-		};
 		InlinePicture.prototype.insertContentControl=function () {
 			return new Word.ContentControl(this.context, _createMethodObjectPath(this.context, this, "InsertContentControl", 0 , [], false, true));
-		};
-		InlinePicture.prototype.insertFileFromBase64=function (base64File, insertLocation) {
-			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertFileFromBase64", 0 , [base64File, insertLocation], false, true));
-		};
-		InlinePicture.prototype.insertHtml=function (html, insertLocation) {
-			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertHtml", 0 , [html, insertLocation], false, true));
-		};
-		InlinePicture.prototype.insertInlinePictureFromBase64=function (base64EncodedImage, insertLocation) {
-			return new Word.InlinePicture(this.context, _createMethodObjectPath(this.context, this, "InsertInlinePictureFromBase64", 0 , [base64EncodedImage, insertLocation], false, true));
-		};
-		InlinePicture.prototype.insertOoxml=function (ooxml, insertLocation) {
-			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertOoxml", 0 , [ooxml, insertLocation], false, true));
-		};
-		InlinePicture.prototype.insertParagraph=function (paragraphText, insertLocation) {
-			return new Word.Paragraph(this.context, _createMethodObjectPath(this.context, this, "InsertParagraph", 0 , [paragraphText, insertLocation], false, true));
-		};
-		InlinePicture.prototype.insertText=function (text, insertLocation) {
-			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertText", 0 , [text, insertLocation], false, true));
-		};
-		InlinePicture.prototype.select=function (selectionMode) {
-			_createMethodAction(this.context, this, "Select", 1 , [selectionMode]);
 		};
 		InlinePicture.prototype._KeepReference=function () {
 			_createMethodAction(this.context, this, "_KeepReference", 1 , []);
@@ -9752,7 +9692,7 @@ var Word;
 			if (!_isUndefined(obj["_ReferenceId"])) {
 				this.m__ReferenceId=obj["_ReferenceId"];
 			}
-			_handleNavigationPropertyResults(this, obj, ["paragraph", "Paragraph", "parentContentControl", "ParentContentControl"]);
+			_handleNavigationPropertyResults(this, obj, ["parentContentControl", "ParentContentControl"]);
 		};
 		InlinePicture.prototype.load=function (option) {
 			_load(this, option);
@@ -10066,8 +10006,8 @@ var Word;
 			searchOptions=_normalizeSearchOptions(this.context, searchOptions);
 			return new Word.SearchResultCollection(this.context, _createMethodObjectPath(this.context, this, "Search", 1 , [searchText, searchOptions], true, true));
 		};
-		Paragraph.prototype.select=function (selectionMode) {
-			_createMethodAction(this.context, this, "Select", 1 , [selectionMode]);
+		Paragraph.prototype.select=function () {
+			_createMethodAction(this.context, this, "Select", 1 , []);
 		};
 		Paragraph.prototype._KeepReference=function () {
 			_createMethodAction(this.context, this, "_KeepReference", 1 , []);
@@ -10211,16 +10151,6 @@ var Word;
 			enumerable: true,
 			configurable: true
 		});
-		Object.defineProperty(Range.prototype, "inlinePictures", {
-			get: function () {
-				if (!this.m_inlinePictures) {
-					this.m_inlinePictures=new Word.InlinePictureCollection(this.context, _createPropertyObjectPath(this.context, this, "InlinePictures", true, false));
-				}
-				return this.m_inlinePictures;
-			},
-			enumerable: true,
-			configurable: true
-		});
 		Object.defineProperty(Range.prototype, "paragraphs", {
 			get: function () {
 				if (!this.m_paragraphs) {
@@ -10307,9 +10237,6 @@ var Word;
 		Range.prototype.insertHtml=function (html, insertLocation) {
 			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertHtml", 0 , [html, insertLocation], false, true));
 		};
-		Range.prototype.insertInlinePictureFromBase64=function (base64EncodedImage, insertLocation) {
-			return new Word.InlinePicture(this.context, _createMethodObjectPath(this.context, this, "InsertInlinePictureFromBase64", 0 , [base64EncodedImage, insertLocation], false, true));
-		};
 		Range.prototype.insertOoxml=function (ooxml, insertLocation) {
 			return new Word.Range(this.context, _createMethodObjectPath(this.context, this, "InsertOoxml", 0 , [ooxml, insertLocation], false, true));
 		};
@@ -10323,8 +10250,8 @@ var Word;
 			searchOptions=_normalizeSearchOptions(this.context, searchOptions);
 			return new Word.SearchResultCollection(this.context, _createMethodObjectPath(this.context, this, "Search", 1 , [searchText, searchOptions], true, true));
 		};
-		Range.prototype.select=function (selectionMode) {
-			_createMethodAction(this.context, this, "Select", 1 , [selectionMode]);
+		Range.prototype.select=function () {
+			_createMethodAction(this.context, this, "Select", 1 , []);
 		};
 		Range.prototype._KeepReference=function () {
 			_createMethodAction(this.context, this, "_KeepReference", 1 , []);
@@ -10346,7 +10273,7 @@ var Word;
 			if (!_isUndefined(obj["_ReferenceId"])) {
 				this.m__ReferenceId=obj["_ReferenceId"];
 			}
-			_handleNavigationPropertyResults(this, obj, ["contentControls", "ContentControls", "font", "Font", "inlinePictures", "InlinePictures", "paragraphs", "Paragraphs", "parentContentControl", "ParentContentControl"]);
+			_handleNavigationPropertyResults(this, obj, ["contentControls", "ContentControls", "font", "Font", "paragraphs", "Paragraphs", "parentContentControl", "ParentContentControl"]);
 		};
 		Range.prototype.load=function (option) {
 			_load(this, option);
@@ -10733,12 +10660,6 @@ var Word;
 		HeaderFooterType.firstPage="FirstPage";
 		HeaderFooterType.evenPages="EvenPages";
 	})(HeaderFooterType=Word.HeaderFooterType || (Word.HeaderFooterType={}));
-	var SelectionMode;
-	(function (SelectionMode) {
-		SelectionMode.select="Select";
-		SelectionMode.start="Start";
-		SelectionMode.end="End";
-	})(SelectionMode=Word.SelectionMode || (Word.SelectionMode={}));
 	var ErrorCodes;
 	(function (ErrorCodes) {
 		ErrorCodes.accessDenied="AccessDenied";
@@ -10767,6 +10688,10 @@ var Word;
 		return RequestContext;
 	})(OfficeExtension.ClientRequestContext);
 	Word.RequestContext=RequestContext;
+	function run(batch) {
+		return OfficeExtension.ClientRequestContext._run(function () { return new Word.RequestContext(); }, batch);
+	}
+	Word.run=run;
 })(Word || (Word={}));
 
 
