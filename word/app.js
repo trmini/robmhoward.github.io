@@ -43,9 +43,11 @@ function createJSFile (filename) {
     fileRef.setAttribute("type","text/javascript");
     fileRef.setAttribute("src", filename);
 
-    return fileRef;
+    var head = document.getElementsByTagName('head')[0];
+    head.appendChild(fileRef);
 }
 
+// Unused function
 function replaceJSFile (oldFilename, newFilename) {
     var allScripts = document.getElementsByTagName("script");
 
@@ -98,7 +100,7 @@ wordSamplesApp.factory("wordSamplesFactory", ['$http', function ($http) {
 
 wordSamplesApp.controller("SamplesController", function ($scope, wordSamplesFactory) {
     $scope.samples = [{ name: "Loading..." }];
-    $scope.builds = [{ name: "6222.1000"}, { name: "4229.1017"}];
+    $scope.builds = [{name: "ios"}, { name: "6222.1000"}, { name: "4229.1017"}];
     $scope.selectedSample = { description: "No sample loaded" };
     $scope.selectedBuild = $scope.builds[0];
     $scope.debugOption = { value: false };
@@ -109,10 +111,13 @@ wordSamplesApp.controller("SamplesController", function ($scope, wordSamplesFact
 
         // Reload Monaco Editor
         initializeMonacoEditor();
-        
-        // Reload JS files
-        replaceJSFile('Office.Runtime.js', 'script/' + officeVersion + '/Office.Runtime.js');
-        replaceJSFile('Word.js', 'script/' + officeVersion + '/Word.js');
+
+        // Load JS files
+        if (officeVersion.indexOf('ios') == -1)
+        {
+            createJSFile('script/' + officeVersion + '/Office.Runtime.js');
+            createJSFile('script/' + officeVersion + '/Word.js');
+        }
         
         // Reload samples
         wordSamplesFactory.getSamples().then(function (response) {
