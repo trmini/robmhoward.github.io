@@ -6572,6 +6572,7 @@ OSF.OUtil.extend(OSF.DDA.WordDocument, OSF.DDA.JsomDocument);
 OSF.InitializationHelper.prototype.loadAppSpecificScriptAndCreateOM = function (n, t) {
 	OSF.DDA.ErrorCodeManager.initializeErrorMessages(Strings.OfficeOM);
 	n.doc = new OSF.DDA.WordDocument(n, this._initializeSettings(n, !1));
+	OSF.DDA.DispIdHost.addAsyncMethods(OSF.DDA.RichApi, [OSF.DDA.AsyncMethodNames.ExecuteRichApiRequestAsync]);
 	t()
 }, function (n) {
 	var t = function () {
