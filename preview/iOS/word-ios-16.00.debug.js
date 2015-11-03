@@ -1,5 +1,5 @@
 /* Word iOS specific JavaScript API library */
-/* Version: 16.0.6303.3000 */
+/* Version: 16.0.6320.1000 */
 /*
 	Copyright (c) Microsoft Corporation.  All rights reserved.
 */
@@ -886,6 +886,7 @@ Microsoft.Office.WebExtension.Parameters = {
     Namespace: "namespace",
     Prefix: "prefix",
     XPath: "xPath",
+    Text: "text",
     ImageLeft: "imageLeft",
     ImageTop: "imageTop",
     ImageWidth: "imageWidth",
@@ -968,7 +969,9 @@ OSF.DDA.MethodDispId = {
     dispidAddDataNamespaceMethod: 139,
     dispidGetDataUriByPrefixMethod: 140,
     dispidGetDataPrefixByUriMethod: 141,
-    dispidMethodMax: 141,
+    dispidGetDataNodeTextMethod: 142,
+    dispidSetDataNodeTextMethod: 143,
+    dispidMethodMax: 143,
     dispidGetSelectedTaskMethod: 110,
     dispidGetSelectedResourceMethod: 111,
     dispidGetTaskMethod: 112,
@@ -1233,27 +1236,6 @@ var OfficeExt;
             return ExcelClientDefaultSetRequirement;
         })(DefaultSetRequirement);
         Requirement.ExcelClientDefaultSetRequirement = ExcelClientDefaultSetRequirement;
-        var ExcelClientV1DefaultSetRequirement = (function (_super) {
-            __extends(ExcelClientV1DefaultSetRequirement, _super);
-            function ExcelClientV1DefaultSetRequirement() {
-                _super.call(this, {
-                    "bindingevents": 1.1,
-                    "documentevents": 1.1,
-                    "excelapi": 1.1,
-                    "matrixbindings": 1.1,
-                    "matrixcoercion": 1.1,
-                    "selection": 1.1,
-                    "settings": 1.1,
-                    "tablebindings": 1.1,
-                    "tablecoercion": 1.1,
-                    "textbindings": 1.1,
-                    "textcoercion": 1.1,
-                    "imagecoercion": 1.1
-                });
-            }
-            return ExcelClientV1DefaultSetRequirement;
-        })(DefaultSetRequirement);
-        Requirement.ExcelClientV1DefaultSetRequirement = ExcelClientV1DefaultSetRequirement;
         var OutlookClientDefaultSetRequirement = (function (_super) {
             __extends(OutlookClientDefaultSetRequirement, _super);
             function OutlookClientDefaultSetRequirement() {
@@ -1291,34 +1273,6 @@ var OfficeExt;
             return WordClientDefaultSetRequirement;
         })(DefaultSetRequirement);
         Requirement.WordClientDefaultSetRequirement = WordClientDefaultSetRequirement;
-        var WordClientV1DefaultSetRequirement = (function (_super) {
-            __extends(WordClientV1DefaultSetRequirement, _super);
-            function WordClientV1DefaultSetRequirement() {
-                _super.call(this, {
-                    "bindingevents": 1.1,
-                    "compressedfile": 1.1,
-                    "customxmlparts": 1.2,
-                    "documentevents": 1.1,
-                    "file": 1.1,
-                    "htmlcoercion": 1.1,
-                    "matrixbindings": 1.1,
-                    "matrixcoercion": 1.1,
-                    "ooxmlcoercion": 1.1,
-                    "pdffile": 1.1,
-                    "selection": 1.1,
-                    "settings": 1.1,
-                    "tablebindings": 1.1,
-                    "tablecoercion": 1.1,
-                    "textbindings": 1.1,
-                    "textcoercion": 1.1,
-                    "textfile": 1.1,
-                    "wordapi": 1.2,
-                    "imagecoercion": 1.1
-                });
-            }
-            return WordClientV1DefaultSetRequirement;
-        })(DefaultSetRequirement);
-        Requirement.WordClientV1DefaultSetRequirement = WordClientV1DefaultSetRequirement;
         var PowerpointClientDefaultSetRequirement = (function (_super) {
             __extends(PowerpointClientDefaultSetRequirement, _super);
             function PowerpointClientDefaultSetRequirement() {
@@ -1336,24 +1290,6 @@ var OfficeExt;
             return PowerpointClientDefaultSetRequirement;
         })(DefaultSetRequirement);
         Requirement.PowerpointClientDefaultSetRequirement = PowerpointClientDefaultSetRequirement;
-        var PowerpointClientV1DefaultSetRequirement = (function (_super) {
-            __extends(PowerpointClientV1DefaultSetRequirement, _super);
-            function PowerpointClientV1DefaultSetRequirement() {
-                _super.call(this, {
-                    "activeview": 1.1,
-                    "compressedfile": 1.1,
-                    "documentevents": 1.1,
-                    "file": 1.1,
-                    "pdffile": 1.1,
-                    "selection": 1.1,
-                    "settings": 1.1,
-                    "textcoercion": 1.1,
-                    "imagecoercion": 1.1
-                });
-            }
-            return PowerpointClientV1DefaultSetRequirement;
-        })(DefaultSetRequirement);
-        Requirement.PowerpointClientV1DefaultSetRequirement = PowerpointClientV1DefaultSetRequirement;
         var ProjectClientDefaultSetRequirement = (function (_super) {
             __extends(ProjectClientDefaultSetRequirement, _super);
             function ProjectClientDefaultSetRequirement() {
@@ -1495,34 +1431,6 @@ var OfficeExt;
             return WordIOSDefaultSetRequirement;
         })(DefaultSetRequirement);
         Requirement.WordIOSDefaultSetRequirement = WordIOSDefaultSetRequirement;
-
-        var WordIOSV1DefaultSetRequirement = (function (_super) {
-            __extends(WordIOSV1DefaultSetRequirement, _super);
-            function WordIOSV1DefaultSetRequirement() {
-                _super.call(this, {
-                    "bindingevents": 1.1,
-                    "compressedfile": 1.1,
-                    "customxmlparts": 1.2,
-                    "documentevents": 1.1,
-                    "file": 1.1,
-                    "htmlcoercion": 1.1,
-                    "matrixbindings": 1.1,
-                    "matrixcoercion": 1.1,
-                    "ooxmlcoercion": 1.1,
-                    "pdffile": 1.1,
-                    "selection": 1.1,
-                    "settings": 1.1,
-                    "tablebindings": 1.1,
-                    "tablecoercion": 1.1,
-                    "textbindings": 1.1,
-                    "textcoercion": 1.1,
-                    "textfile": 1.1,
-                    "wordapi": 1.2
-                });
-            }
-            return WordIOSV1DefaultSetRequirement;
-        })(DefaultSetRequirement);
-        Requirement.WordIOSV1DefaultSetRequirement = WordIOSV1DefaultSetRequirement;
         var PowerpointIOSDefaultSetRequirement = (function (_super) {
             __extends(PowerpointIOSDefaultSetRequirement, _super);
             function PowerpointIOSDefaultSetRequirement() {
@@ -1567,27 +1475,13 @@ var OfficeExt;
                 } else {
                     var appMinorVersion = appContext.get_appMinorVersion();
                     var appMinorVersionString = "";
-                    var appFullVersion = "";
-
-                    var appName = appContext.get_appName();
-                    var isIOSClient = appName == 1024 || appName == 4096 || appName == 8192 || appName == 65536;
-                    if (isIOSClient && appContext.get_appVersion() == 1) {
-                        if (appName == 4096 && appMinorVersion >= 15) {
-                            appFullVersion = "16.001";
-                        } else {
-                            appFullVersion = "16.00";
-                        }
-                    } else if (appContext.get_appName() == 64) {
-                        appFullVersion = appContext.get_appVersion();
+                    if (appMinorVersion < 10) {
+                        appMinorVersionString = "0" + appMinorVersion;
                     } else {
-                        if (appMinorVersion < 10) {
-                            appMinorVersionString = "0" + appMinorVersion;
-                        } else {
-                            appMinorVersionString = "" + appMinorVersion;
-                        }
-
-                        appFullVersion = appContext.get_appVersion() + "." + appMinorVersionString;
+                        appMinorVersionString = "" + appMinorVersion;
                     }
+
+                    var appFullVersion = appContext.get_appVersion() + "." + appMinorVersionString;
                     var appLocator = appContext.get_appName() + "-" + appFullVersion;
                     if (RequirementsMatrixFactory.DefaultSetArrayMatrix != undefined && RequirementsMatrixFactory.DefaultSetArrayMatrix[appLocator] != undefined) {
                         defaultRequirementMatrix = new RequirementMatrix(RequirementsMatrixFactory.DefaultSetArrayMatrix[appLocator]);
@@ -1601,9 +1495,6 @@ var OfficeExt;
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_RCLIENT_1600] = new ExcelClientDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_RCLIENT_1600] = new WordClientDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.PowerPoint_RCLIENT_1600] = new PowerpointClientDefaultSetRequirement();
-                RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_RCLIENT_1601] = new ExcelClientV1DefaultSetRequirement();
-                RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_RCLIENT_1601] = new WordClientV1DefaultSetRequirement();
-                RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.PowerPoint_RCLIENT_1601] = new PowerpointClientV1DefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Outlook_RCLIENT_1600] = new OutlookClientDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_WAC_1600] = new ExcelWebDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_WAC_1600] = new WordWebDefaultSetRequirement();
@@ -1615,16 +1506,12 @@ var OfficeExt;
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_IOS_1600] = new ExcelIOSDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.SWAY_WAC_1600] = new SwayWebDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_IOS_1600] = new WordIOSDefaultSetRequirement();
-                RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_IOS_16001] = new WordIOSV1DefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.PowerPoint_IOS_1600] = new PowerpointIOSDefaultSetRequirement();
                 RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Outlook_IOS_1600] = new OutlookIOSDefaultSetRequirement();
             };
             RequirementsMatrixFactory.Excel_RCLIENT_1600 = "1-16.00";
-            RequirementsMatrixFactory.Excel_RCLIENT_1601 = "1-16.01";
             RequirementsMatrixFactory.Word_RCLIENT_1600 = "2-16.00";
-            RequirementsMatrixFactory.Word_RCLIENT_1601 = "2-16.00";
             RequirementsMatrixFactory.PowerPoint_RCLIENT_1600 = "4-16.00";
-            RequirementsMatrixFactory.PowerPoint_RCLIENT_1601 = "4-16.01";
             RequirementsMatrixFactory.Outlook_RCLIENT_1600 = "8-16.00";
             RequirementsMatrixFactory.Excel_WAC_1600 = "16-16.00";
             RequirementsMatrixFactory.Word_WAC_1600 = "32-16.00";
@@ -1636,7 +1523,6 @@ var OfficeExt;
             RequirementsMatrixFactory.Excel_IOS_1600 = "1024-16.01";
             RequirementsMatrixFactory.SWAY_WAC_1600 = "2048-16.00";
             RequirementsMatrixFactory.Word_IOS_1600 = "4096-16.00";
-            RequirementsMatrixFactory.Word_IOS_16001 = "4096-16.001";
             RequirementsMatrixFactory.PowerPoint_IOS_1600 = "8192-16.00";
 
             RequirementsMatrixFactory.Outlook_IOS_1600 = "65536-16.00";
@@ -2495,6 +2381,8 @@ OSF.DDA.DispIdHost.Facade = function OSF_DDA_DispIdHost_Facade(getDelegateMethod
         "AddDataPartNamespaceAsync": did.dispidAddDataNamespaceMethod,
         "GetDataPartNamespaceAsync": did.dispidGetDataUriByPrefixMethod,
         "GetDataPartPrefixAsync": did.dispidGetDataPrefixByUriMethod,
+        "GetNodeTextAsync": did.dispidGetDataNodeTextMethod,
+        "SetNodeTextAsync": did.dispidSetDataNodeTextMethod,
         "GetSelectedTask": did.dispidGetSelectedTaskMethod,
         "GetTask": did.dispidGetTaskMethod,
         "GetWSSUrl": did.dispidGetWSSUrlMethod,
@@ -3593,6 +3481,16 @@ var OSFLog;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(AppActivatedUsageData.prototype, "AppInstanceId", {
+            get: function () {
+                return this.Fields["AppInstanceId"];
+            },
+            set: function (value) {
+                this.Fields["AppInstanceId"] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(AppActivatedUsageData.prototype, "AppURL", {
             get: function () {
                 return this.Fields["AppURL"];
@@ -3687,6 +3585,7 @@ var OSFLog;
             this.SetSerializedField("CorrelationId", this.CorrelationId);
             this.SetSerializedField("SessionId", this.SessionId);
             this.SetSerializedField("AppId", this.AppId);
+            this.SetSerializedField("AppInstanceId", this.AppInstanceId);
             this.SetSerializedField("AppURL", this.AppURL);
             this.SetSerializedField("AssetId", this.AssetId);
             this.SetSerializedField("Browser", this.Browser);
@@ -4226,6 +4125,10 @@ var OSFAppTelemetry;
         appInfo.browser = window.navigator.userAgent;
         appInfo.correlationId = context.get_correlationId();
         appInfo.clientId = (new AppStorage()).getClientId();
+        appInfo.appInstanceId = context.get_appInstanceId();
+        if (appInfo.appInstanceId) {
+            appInfo.appInstanceId = appInfo.appInstanceId.replace(/[{}]/g, "").toLowerCase();
+        }
         var index = location.href.indexOf("?");
         appInfo.appURL = (index == -1) ? location.href : location.href.substring(0, index);
 
@@ -4321,6 +4224,7 @@ var OSFAppTelemetry;
         data.CorrelationId = appInfo.correlationId;
         data.AppSizeWidth = window.innerWidth;
         data.AppSizeHeight = window.innerHeight;
+        data.AppInstanceId = appInfo.appInstanceId;
         (new AppLogger()).LogData(data);
 
         setTimeout(function () {
@@ -6352,7 +6256,9 @@ OSF.DDA.CustomXmlNode = function OSF_DDA_CustomXmlNode(handle, nodeType, ns, bas
         am.GetNodeValueAsync,
         am.GetNodeXmlAsync,
         am.SetNodeValueAsync,
-        am.SetNodeXmlAsync
+        am.SetNodeXmlAsync,
+        am.GetNodeTextAsync,
+        am.SetNodeTextAsync
     ], handle);
 };
 
@@ -6424,7 +6330,9 @@ OSF.DDA.AsyncMethodNames.addNames({
     GetNodeValueAsync: "getNodeValueAsync",
     GetNodeXmlAsync: "getXmlAsync",
     SetNodeValueAsync: "setNodeValueAsync",
-    SetNodeXmlAsync: "setXmlAsync"
+    SetNodeXmlAsync: "setXmlAsync",
+    GetNodeTextAsync: "getTextAsync",
+    SetNodeTextAsync: "setTextAsync"
 });
 
 (function () {
@@ -6672,6 +6580,36 @@ OSF.DDA.AsyncMethodNames.addNames({
             }
         ]
     });
+
+    OSF.DDA.AsyncMethodCalls.define({
+        method: OSF.DDA.AsyncMethodNames.GetNodeTextAsync,
+        requiredArguments: [],
+        supportedOptions: [],
+        privateStateCallbacks: [
+            {
+                name: OSF.DDA.DataNodeProperties.Handle,
+                value: getNodeHandle
+            }
+        ],
+        onSucceeded: processData
+    });
+
+    OSF.DDA.AsyncMethodCalls.define({
+        method: OSF.DDA.AsyncMethodNames.SetNodeTextAsync,
+        requiredArguments: [
+            {
+                "name": Microsoft.Office.WebExtension.Parameters.Text,
+                "types": ["string"]
+            }
+        ],
+        supportedOptions: [],
+        privateStateCallbacks: [
+            {
+                name: OSF.DDA.DataNodeProperties.Handle,
+                value: getNodeHandle
+            }
+        ]
+    });
 })();
 
 OSF.DDA.SafeArray.Delegate.ParameterMap.define({
@@ -6880,6 +6818,24 @@ OSF.DDA.SafeArray.Delegate.ParameterMap.define({
     toHost: [
         { name: OSF.DDA.DataPartProperties.Id, value: 0 },
         { name: Microsoft.Office.WebExtension.Parameters.Namespace, value: 1 }
+    ]
+});
+
+OSF.DDA.SafeArray.Delegate.ParameterMap.define({
+    type: OSF.DDA.MethodDispId.dispidGetDataNodeTextMethod,
+    fromHost: [
+        { name: Microsoft.Office.WebExtension.Parameters.Data, value: OSF.DDA.SafeArray.Delegate.ParameterMap.self }
+    ],
+    toHost: [
+        { name: OSF.DDA.DataNodeProperties.Handle, value: 0 }
+    ]
+});
+
+OSF.DDA.SafeArray.Delegate.ParameterMap.define({
+    type: OSF.DDA.MethodDispId.dispidSetDataNodeTextMethod,
+    toHost: [
+        { name: OSF.DDA.DataNodeProperties.Handle, value: 0 },
+        { name: Microsoft.Office.WebExtension.Parameters.Text, value: 1 }
     ]
 });
 
