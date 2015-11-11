@@ -100,7 +100,7 @@ wordSamplesApp.factory("wordSamplesFactory", ['$http', function ($http) {
 
 wordSamplesApp.controller("SamplesController", function ($scope, wordSamplesFactory) {
     $scope.samples = [{ name: "Loading..." }];
-    $scope.builds = [{name: "ios"}, { name: "6222.1000"}, { name: "4229.1017"}];
+    $scope.builds = [{name: "6409.1000"}, { name: "4229.1017"}];
     $scope.selectedSample = { description: "No sample loaded" };
     $scope.selectedBuild = $scope.builds[0];
     $scope.debugOption = { value: false };
@@ -112,8 +112,8 @@ wordSamplesApp.controller("SamplesController", function ($scope, wordSamplesFact
         // Reload Monaco Editor
         initializeMonacoEditor();
 
-        // Load JS files
-        if (officeVersion.indexOf('ios') == -1)
+        // Load JS files - only for old version
+        if (officeVersion.indexOf('4229.1017') > -1)
         {
             createJSFile('script/' + officeVersion + '/Office.Runtime.js');
             createJSFile('script/' + officeVersion + '/Word.js');
