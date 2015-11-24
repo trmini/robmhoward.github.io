@@ -1,5 +1,5 @@
 /* Excel specific API library */
-/* Version: 16.0.6216.3006 */
+/* Version: 16.0.6323.3007 */
 /*
 	Copyright (c) Microsoft Corporation.  All rights reserved.
 */
@@ -540,6 +540,10 @@ OSF.OUtil=(function () {
 				element["on"+eventName]=null;
 			}
 		},
+		getCookieValue: function OSF_OUtil$getCookieValue(cookieName) {
+			var tmpCookieString=RegExp(cookieName+"[^;]+").exec(document.cookie);
+			return tmpCookieString.toString().replace(/^[^=]+./, "");
+		},
 		xhrGet: function OSF_OUtil$xhrGet(url, onSuccess, onError) {
 			var xmlhttp;
 			try  {
@@ -548,6 +552,26 @@ OSF.OUtil=(function () {
 					if (xmlhttp.readyState==4) {
 						if (xmlhttp.status==200) {
 							onSuccess(xmlhttp.responseText);
+						} else {
+							onError(xmlhttp.status);
+						}
+					}
+				};
+				xmlhttp.open("GET", url, true);
+				xmlhttp.send();
+			} catch (ex) {
+				onError(ex);
+			}
+		},
+		xhrGetFull: function OSF_OUtil$xhrGetFull(url, oneDriveFileName, onSuccess, onError) {
+			var xmlhttp;
+			var requestedFileName=oneDriveFileName;
+			try  {
+				xmlhttp=new XMLHttpRequest();
+				xmlhttp.onreadystatechange=function () {
+					if (xmlhttp.readyState==4) {
+						if (xmlhttp.status==200) {
+							onSuccess(xmlhttp, requestedFileName);
 						} else {
 							onError(xmlhttp.status);
 						}
@@ -870,6 +894,7 @@ Microsoft.Office.WebExtension.Parameters={
 	Namespace: "namespace",
 	Prefix: "prefix",
 	XPath: "xPath",
+	Text: "text",
 	ImageLeft: "imageLeft",
 	ImageTop: "imageTop",
 	ImageWidth: "imageWidth",
@@ -952,7 +977,9 @@ OSF.DDA.MethodDispId={
 	dispidAddDataNamespaceMethod: 139,
 	dispidGetDataUriByPrefixMethod: 140,
 	dispidGetDataPrefixByUriMethod: 141,
-	dispidMethodMax: 141,
+	dispidGetDataNodeTextMethod: 142,
+	dispidSetDataNodeTextMethod: 143,
+	dispidMethodMax: 143,
 	dispidGetSelectedTaskMethod: 110,
 	dispidGetSelectedResourceMethod: 111,
 	dispidGetTaskMethod: 112,
@@ -1217,6 +1244,28 @@ var OfficeExt;
 			return ExcelClientDefaultSetRequirement;
 		})(DefaultSetRequirement);
 		Requirement.ExcelClientDefaultSetRequirement=ExcelClientDefaultSetRequirement;
+
+		var ExcelClientV1DefaultSetRequirement=(function (_super) {
+			__extends(ExcelClientV1DefaultSetRequirement, _super);
+			function ExcelClientV1DefaultSetRequirement() {
+				_super.call(this, {
+					"bindingevents": 1.1,
+					"documentevents": 1.1,
+					"excelapi": 1.1,
+					"matrixbindings": 1.1,
+					"matrixcoercion": 1.1,
+					"selection": 1.1,
+					"settings": 1.1,
+					"tablebindings": 1.1,
+					"tablecoercion": 1.1,
+					"textbindings": 1.1,
+					"textcoercion": 1.1,
+					"imagecoercion": 1.1
+				});
+			}
+			return ExcelClientV1DefaultSetRequirement;
+		})(DefaultSetRequirement);
+		Requirement.ExcelClientV1DefaultSetRequirement=ExcelClientV1DefaultSetRequirement;
 		var OutlookClientDefaultSetRequirement=(function (_super) {
 			__extends(OutlookClientDefaultSetRequirement, _super);
 			function OutlookClientDefaultSetRequirement() {
@@ -1254,6 +1303,35 @@ var OfficeExt;
 			return WordClientDefaultSetRequirement;
 		})(DefaultSetRequirement);
 		Requirement.WordClientDefaultSetRequirement=WordClientDefaultSetRequirement;
+
+		var WordClientV1DefaultSetRequirement=(function (_super) {
+			__extends(WordClientV1DefaultSetRequirement, _super);
+			function WordClientV1DefaultSetRequirement() {
+				_super.call(this, {
+					"bindingevents": 1.1,
+					"compressedfile": 1.1,
+					"customxmlparts": 1.2,
+					"documentevents": 1.1,
+					"file": 1.1,
+					"htmlcoercion": 1.1,
+					"matrixbindings": 1.1,
+					"matrixcoercion": 1.1,
+					"ooxmlcoercion": 1.1,
+					"pdffile": 1.1,
+					"selection": 1.1,
+					"settings": 1.1,
+					"tablebindings": 1.1,
+					"tablecoercion": 1.1,
+					"textbindings": 1.1,
+					"textcoercion": 1.1,
+					"textfile": 1.1,
+					"wordapi": 1.2,
+					"imagecoercion": 1.1
+				});
+			}
+			return WordClientV1DefaultSetRequirement;
+		})(DefaultSetRequirement);
+		Requirement.WordClientV1DefaultSetRequirement=WordClientV1DefaultSetRequirement;
 		var PowerpointClientDefaultSetRequirement=(function (_super) {
 			__extends(PowerpointClientDefaultSetRequirement, _super);
 			function PowerpointClientDefaultSetRequirement() {
@@ -1271,6 +1349,25 @@ var OfficeExt;
 			return PowerpointClientDefaultSetRequirement;
 		})(DefaultSetRequirement);
 		Requirement.PowerpointClientDefaultSetRequirement=PowerpointClientDefaultSetRequirement;
+
+		var PowerpointClientV1DefaultSetRequirement=(function (_super) {
+			__extends(PowerpointClientV1DefaultSetRequirement, _super);
+			function PowerpointClientV1DefaultSetRequirement() {
+				_super.call(this, {
+					"activeview": 1.1,
+					"compressedfile": 1.1,
+					"documentevents": 1.1,
+					"file": 1.1,
+					"pdffile": 1.1,
+					"selection": 1.1,
+					"settings": 1.1,
+					"textcoercion": 1.1,
+					"imagecoercion": 1.1
+				});
+			}
+			return PowerpointClientV1DefaultSetRequirement;
+		})(DefaultSetRequirement);
+		Requirement.PowerpointClientV1DefaultSetRequirement=PowerpointClientV1DefaultSetRequirement;
 		var ProjectClientDefaultSetRequirement=(function (_super) {
 			__extends(ProjectClientDefaultSetRequirement, _super);
 			function ProjectClientDefaultSetRequirement() {
@@ -1412,6 +1509,34 @@ var OfficeExt;
 			return WordIOSDefaultSetRequirement;
 		})(DefaultSetRequirement);
 		Requirement.WordIOSDefaultSetRequirement=WordIOSDefaultSetRequirement;
+
+		var WordIOSV1DefaultSetRequirement=(function (_super) {
+			__extends(WordIOSV1DefaultSetRequirement, _super);
+			function WordIOSV1DefaultSetRequirement() {
+				_super.call(this, {
+					"bindingevents": 1.1,
+					"compressedfile": 1.1,
+					"customxmlparts": 1.2,
+					"documentevents": 1.1,
+					"file": 1.1,
+					"htmlcoercion": 1.1,
+					"matrixbindings": 1.1,
+					"matrixcoercion": 1.1,
+					"ooxmlcoercion": 1.1,
+					"pdffile": 1.1,
+					"selection": 1.1,
+					"settings": 1.1,
+					"tablebindings": 1.1,
+					"tablecoercion": 1.1,
+					"textbindings": 1.1,
+					"textcoercion": 1.1,
+					"textfile": 1.1,
+					"wordapi": 1.2
+				});
+			}
+			return WordIOSV1DefaultSetRequirement;
+		})(DefaultSetRequirement);
+		Requirement.WordIOSV1DefaultSetRequirement=WordIOSV1DefaultSetRequirement;
 		var PowerpointIOSDefaultSetRequirement=(function (_super) {
 			__extends(PowerpointIOSDefaultSetRequirement, _super);
 			function PowerpointIOSDefaultSetRequirement() {
@@ -1451,18 +1576,32 @@ var OfficeExt;
 				this.initializeDefaultSetMatrix();
 				var defaultRequirementMatrix=undefined;
 				if (appContext.get_requirementMatrix() !=undefined && typeof (JSON) !=="undefined") {
-					var matrixItem=JSON.parse(appContext.get_requirementMatrix());
+					var matrixItem=JSON.parse(appContext.get_requirementMatrix().toLowerCase());
 					defaultRequirementMatrix=new RequirementMatrix(new DefaultSetRequirement(matrixItem));
 				} else {
 					var appMinorVersion=appContext.get_appMinorVersion();
 					var appMinorVersionString="";
-					if (appMinorVersion < 10) {
-						appMinorVersionString="0"+appMinorVersion;
-					} else {
-						appMinorVersionString=""+appMinorVersion;
-					}
+					var appFullVersion="";
 
-					var appFullVersion=appContext.get_appVersion()+"."+appMinorVersionString;
+					var appName=appContext.get_appName();
+					var isIOSClient=appName==1024 || appName==4096 || appName==8192 || appName==65536;
+					if (isIOSClient && appContext.get_appVersion()==1) {
+						if (appName==4096 && appMinorVersion >=15) {
+							appFullVersion="16.00.01";
+						} else {
+							appFullVersion="16.00";
+						}
+					} else if (appContext.get_appName()==64) {
+						appFullVersion=appContext.get_appVersion();
+					} else {
+						if (appMinorVersion < 10) {
+							appMinorVersionString="0"+appMinorVersion;
+						} else {
+							appMinorVersionString=""+appMinorVersion;
+						}
+
+						appFullVersion=appContext.get_appVersion()+"."+appMinorVersionString;
+					}
 					var appLocator=appContext.get_appName()+"-"+appFullVersion;
 					if (RequirementsMatrixFactory.DefaultSetArrayMatrix !=undefined && RequirementsMatrixFactory.DefaultSetArrayMatrix[appLocator] !=undefined) {
 						defaultRequirementMatrix=new RequirementMatrix(RequirementsMatrixFactory.DefaultSetArrayMatrix[appLocator]);
@@ -1476,6 +1615,9 @@ var OfficeExt;
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_RCLIENT_1600]=new ExcelClientDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_RCLIENT_1600]=new WordClientDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.PowerPoint_RCLIENT_1600]=new PowerpointClientDefaultSetRequirement();
+				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_RCLIENT_1601]=new ExcelClientV1DefaultSetRequirement();
+				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_RCLIENT_1601]=new WordClientV1DefaultSetRequirement();
+				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.PowerPoint_RCLIENT_1601]=new PowerpointClientV1DefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Outlook_RCLIENT_1600]=new OutlookClientDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_WAC_1600]=new ExcelWebDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_WAC_1600]=new WordWebDefaultSetRequirement();
@@ -1487,12 +1629,16 @@ var OfficeExt;
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Excel_IOS_1600]=new ExcelIOSDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.SWAY_WAC_1600]=new SwayWebDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_IOS_1600]=new WordIOSDefaultSetRequirement();
+				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Word_IOS_16001]=new WordIOSV1DefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.PowerPoint_IOS_1600]=new PowerpointIOSDefaultSetRequirement();
 				RequirementsMatrixFactory.DefaultSetArrayMatrix[RequirementsMatrixFactory.Outlook_IOS_1600]=new OutlookIOSDefaultSetRequirement();
 			};
 			RequirementsMatrixFactory.Excel_RCLIENT_1600="1-16.00";
+			RequirementsMatrixFactory.Excel_RCLIENT_1601="1-16.01";
 			RequirementsMatrixFactory.Word_RCLIENT_1600="2-16.00";
+			RequirementsMatrixFactory.Word_RCLIENT_1601="2-16.01";
 			RequirementsMatrixFactory.PowerPoint_RCLIENT_1600="4-16.00";
+			RequirementsMatrixFactory.PowerPoint_RCLIENT_1601="4-16.01";
 			RequirementsMatrixFactory.Outlook_RCLIENT_1600="8-16.00";
 			RequirementsMatrixFactory.Excel_WAC_1600="16-16.00";
 			RequirementsMatrixFactory.Word_WAC_1600="32-16.00";
@@ -1501,9 +1647,10 @@ var OfficeExt;
 			RequirementsMatrixFactory.Project_RCLIENT_1600="128-16.00";
 			RequirementsMatrixFactory.Access_WAC_1600="256-16.00";
 			RequirementsMatrixFactory.PowerPoint_WAC_1600="512-16.00";
-			RequirementsMatrixFactory.Excel_IOS_1600="1024-16.01";
+			RequirementsMatrixFactory.Excel_IOS_1600="1024-16.00";
 			RequirementsMatrixFactory.SWAY_WAC_1600="2048-16.00";
 			RequirementsMatrixFactory.Word_IOS_1600="4096-16.00";
+			RequirementsMatrixFactory.Word_IOS_16001="4096-16.00.01";
 			RequirementsMatrixFactory.PowerPoint_IOS_1600="8192-16.00";
 
 			RequirementsMatrixFactory.Outlook_IOS_1600="65536-16.00";
@@ -2362,6 +2509,8 @@ OSF.DDA.DispIdHost.Facade=function OSF_DDA_DispIdHost_Facade(getDelegateMethods,
 		"AddDataPartNamespaceAsync": did.dispidAddDataNamespaceMethod,
 		"GetDataPartNamespaceAsync": did.dispidGetDataUriByPrefixMethod,
 		"GetDataPartPrefixAsync": did.dispidGetDataPrefixByUriMethod,
+		"GetNodeTextAsync": did.dispidGetDataNodeTextMethod,
+		"SetNodeTextAsync": did.dispidSetDataNodeTextMethod,
 		"GetSelectedTask": did.dispidGetSelectedTaskMethod,
 		"GetTask": did.dispidGetTaskMethod,
 		"GetWSSUrl": did.dispidGetWSSUrlMethod,
@@ -2794,40 +2943,41 @@ OSF.DDA.SafeArray.Delegate.executeAsync=function OSF_DDA_SafeArray_Delegate$Exec
 
 					args._chunkResultData[payload[0]]=payload[1];
 				}
-			} else {
-				if (args.onReceiving) {
-					args.onReceiving();
-				}
-				if (args.onComplete) {
-					var payload;
-					if (status==OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
-						if (result.length > 2) {
-							payload=[];
-							for (var i=1; i < result.length; i++)
-								payload[i - 1]=result[i];
-						} else {
-							payload=result[OSF.DDA.SafeArray.Response.Payload];
-						}
-						if (args._chunkResultData) {
-							payload=fromSafeArray(payload);
-							if (payload !=null) {
-								var expectedChunkCount=payload[payload.length - 1];
-								if (args._chunkResultData.length==expectedChunkCount) {
-									payload[payload.length - 1]=args._chunkResultData;
-								} else {
-									status=OSF.DDA.ErrorCodeManager.errorCodes.ooeInternalError;
-								}
-							}
-						}
+				return false;
+			}
+			if (args.onReceiving) {
+				args.onReceiving();
+			}
+			if (args.onComplete) {
+				var payload;
+				if (status==OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
+					if (result.length > 2) {
+						payload=[];
+						for (var i=1; i < result.length; i++)
+							payload[i - 1]=result[i];
 					} else {
 						payload=result[OSF.DDA.SafeArray.Response.Payload];
 					}
-					args.onComplete(status, payload);
+					if (args._chunkResultData) {
+						payload=fromSafeArray(payload);
+						if (payload !=null) {
+							var expectedChunkCount=payload[payload.length - 1];
+							if (args._chunkResultData.length==expectedChunkCount) {
+								payload[payload.length - 1]=args._chunkResultData;
+							} else {
+								status=OSF.DDA.ErrorCodeManager.errorCodes.ooeInternalError;
+							}
+						}
+					}
+				} else {
+					payload=result[OSF.DDA.SafeArray.Response.Payload];
 				}
-				if (OSF.AppTelemetry) {
-					OSF.AppTelemetry.onMethodDone(args.dispId, args.hostCallArgs, Math.abs((new Date()).getTime() - startTime), status);
-				}
+				args.onComplete(status, payload);
 			}
+			if (OSF.AppTelemetry) {
+				OSF.AppTelemetry.onMethodDone(args.dispId, args.hostCallArgs, Math.abs((new Date()).getTime() - startTime), status);
+			}
+			return true;
 		});
 	} catch (ex) {
 		OSF.DDA.SafeArray.Delegate._onException(ex, args);
@@ -3210,6 +3360,16 @@ var OSFLog;
 			enumerable: true,
 			configurable: true
 		});
+		Object.defineProperty(AppActivatedUsageData.prototype, "AppInstanceId", {
+			get: function () {
+				return this.Fields["AppInstanceId"];
+			},
+			set: function (value) {
+				this.Fields["AppInstanceId"]=value;
+			},
+			enumerable: true,
+			configurable: true
+		});
 		Object.defineProperty(AppActivatedUsageData.prototype, "AppURL", {
 			get: function () {
 				return this.Fields["AppURL"];
@@ -3304,6 +3464,7 @@ var OSFLog;
 			this.SetSerializedField("CorrelationId", this.CorrelationId);
 			this.SetSerializedField("SessionId", this.SessionId);
 			this.SetSerializedField("AppId", this.AppId);
+			this.SetSerializedField("AppInstanceId", this.AppInstanceId);
 			this.SetSerializedField("AppURL", this.AppURL);
 			this.SetSerializedField("AssetId", this.AssetId);
 			this.SetSerializedField("Browser", this.Browser);
@@ -3837,6 +3998,10 @@ var OSFAppTelemetry;
 		appInfo.browser=window.navigator.userAgent;
 		appInfo.correlationId=context.get_correlationId();
 		appInfo.clientId=(new AppStorage()).getClientId();
+		appInfo.appInstanceId=context.get_appInstanceId();
+		if (appInfo.appInstanceId) {
+			appInfo.appInstanceId=appInfo.appInstanceId.replace(/[{}]/g, "").toLowerCase();
+		}
 		var index=location.href.indexOf("?");
 		appInfo.appURL=(index==-1) ? location.href : location.href.substring(0, index);
 
@@ -3932,6 +4097,7 @@ var OSFAppTelemetry;
 		data.CorrelationId=appInfo.correlationId;
 		data.AppSizeWidth=window.innerWidth;
 		data.AppSizeHeight=window.innerHeight;
+		data.AppInstanceId=appInfo.appInstanceId;
 		(new AppLogger()).LogData(data);
 
 		setTimeout(function () {
@@ -6272,6 +6438,266 @@ Microsoft.Office.WebExtension.Table={
 		}
 	});
 })();
+
+var OfficeExt;
+(function (OfficeExt) {
+	(function (AppCommand) {
+		var AppCommandManager=(function () {
+			function AppCommandManager() {
+				var _this=this;
+				this._pseudoDocument=null;
+				this._eventDispatch=null;
+				this._processAppCommandInvocation=function (args) {
+					var verifyResult=_this._verifyManifestCallback(args.callbackName);
+					if (verifyResult.errorCode !=OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
+						_this._invokeAppCommandCompletedMethod(args.appCommandId, verifyResult.errorCode, "");
+						return;
+					}
+					var eventObj=_this._constructEventObjectForCallback(args);
+					if (eventObj) {
+						window.setTimeout(function () {
+							verifyResult.callback(eventObj);
+						}, 0);
+					} else {
+						_this._invokeAppCommandCompletedMethod(args.appCommandId, OSF.DDA.ErrorCodeManager.errorCodes.ooeInternalError, "");
+					}
+				};
+			}
+			AppCommandManager.initializeOsfDda=function () {
+				OSF.DDA.AsyncMethodNames.addNames({
+					AppCommandInvocationCompletedAsync: "appCommandInvocationCompletedAsync"
+				});
+				OSF.DDA.AsyncMethodCalls.define({
+					method: OSF.DDA.AsyncMethodNames.AppCommandInvocationCompletedAsync,
+					requiredArguments: [
+						{
+							"name": Microsoft.Office.WebExtension.Parameters.Id,
+							"types": ["string"]
+						},
+						{
+							"name": Microsoft.Office.WebExtension.Parameters.Status,
+							"types": ["number"]
+						},
+						{
+							"name": Microsoft.Office.WebExtension.Parameters.Data,
+							"types": ["string"]
+						}
+					]
+				});
+
+				OSF.OUtil.augmentList(OSF.DDA.EventDescriptors, {
+					AppCommandInvokedEvent: "AppCommandInvokedEvent"
+				});
+				OSF.OUtil.augmentList(Microsoft.Office.WebExtension.EventType, {
+					AppCommandInvoked: "appCommandInvoked"
+				});
+
+				OSF.OUtil.setNamespace("AppCommand", OSF.DDA);
+				OSF.DDA.AppCommand.AppCommandInvokedEventArgs=OfficeExt.AppCommand.AppCommandInvokedEventArgs;
+			};
+
+			AppCommandManager.prototype.initializeAndChangeOnce=function (callback) {
+				AppCommand.registerDdaFacade();
+				this._pseudoDocument={};
+
+				OSF.DDA.DispIdHost.addAsyncMethods(this._pseudoDocument, [
+					OSF.DDA.AsyncMethodNames.AppCommandInvocationCompletedAsync
+				]);
+
+				this._eventDispatch=new OSF.EventDispatch([
+					Microsoft.Office.WebExtension.EventType.AppCommandInvoked
+				]);
+				var onRegisterCompleted=function (result) {
+					if (callback) {
+						if (result.status=="succeeded") {
+							callback(OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess);
+						} else {
+							callback(OSF.DDA.ErrorCodeManager.errorCodes.ooeInternalError);
+						}
+					}
+				};
+				OSF.DDA.DispIdHost.addEventSupport(this._pseudoDocument, this._eventDispatch);
+				this._pseudoDocument.addHandlerAsync(Microsoft.Office.WebExtension.EventType.AppCommandInvoked, this._processAppCommandInvocation, onRegisterCompleted);
+			};
+
+			AppCommandManager.prototype._verifyManifestCallback=function (callbackName) {
+				var defaultResult={ callback: null, errorCode: OSF.DDA.ErrorCodeManager.errorCodes.ooeInvalidCallback };
+				callbackName=callbackName.trim();
+				try  {
+					var callList=callbackName.split(".");
+					var parentObject=window;
+					for (var i=0; i < callList.length - 1; i++) {
+						if (parentObject[callList[i]] && typeof parentObject[callList[i]]=="object") {
+							parentObject=parentObject[callList[i]];
+						} else {
+							return defaultResult;
+						}
+					}
+					var callbackFunc=parentObject[callList[callList.length - 1]];
+					if (typeof callbackFunc !="function") {
+						return defaultResult;
+					}
+				} catch (e) {
+					return defaultResult;
+				}
+				return { callback: callbackFunc, errorCode: OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess };
+			};
+
+			AppCommandManager.prototype._invokeAppCommandCompletedMethod=function (appCommandId, resultCode, data) {
+				this._pseudoDocument.appCommandInvocationCompletedAsync(appCommandId, resultCode, data);
+			};
+
+			AppCommandManager.prototype._constructEventObjectForCallback=function (args) {
+				var _this=this;
+				var eventObj=new AppCommandCallbackEventArgs();
+				try  {
+					var jsonData=JSON.parse(args.eventObjStr);
+
+					this._translateEventObjectInternal(jsonData, eventObj);
+
+					Object.defineProperty(eventObj, 'completed', {
+						value: function () {
+							var jsonString=JSON.stringify(eventObj);
+							_this._invokeAppCommandCompletedMethod(args.appCommandId, OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess, jsonString);
+						},
+						enumerable: true
+					});
+				} catch (e) {
+					eventObj=null;
+				}
+				return eventObj;
+			};
+
+			AppCommandManager.prototype._translateEventObjectInternal=function (input, output) {
+				for (var key in input) {
+					if (!input.hasOwnProperty(key))
+						continue;
+					var inputChild=input[key];
+					if (typeof inputChild=="object" && inputChild !=null) {
+						OSF.OUtil.defineEnumerableProperty(output, key, {
+							value: {}
+						});
+						this._translateEventObjectInternal(inputChild, output[key]);
+					} else {
+						Object.defineProperty(output, key, {
+							value: inputChild,
+							enumerable: true,
+							writable: true
+						});
+					}
+				}
+			};
+
+			AppCommandManager.prototype._constructObjectByTemplate=function (template, input) {
+				var output={};
+				if (!template || !input)
+					return output;
+				for (var key in template) {
+					if (template.hasOwnProperty(key)) {
+						output[key]=null;
+						if (input[key] !=null) {
+							var templateChild=template[key];
+							var inputChild=input[key];
+							var inputChildType=typeof inputChild;
+							if (typeof templateChild=="object" && templateChild !=null) {
+								output[key]=this._constructObjectByTemplate(templateChild, inputChild);
+							} else if (inputChildType=="number" || inputChildType=="string" || inputChildType=="boolean") {
+								output[key]=inputChild;
+							}
+						}
+					}
+				}
+				return output;
+			};
+
+			AppCommandManager.instance=function () {
+				if (AppCommandManager._instance==null) {
+					AppCommandManager._instance=new AppCommandManager();
+				}
+				return AppCommandManager._instance;
+			};
+			AppCommandManager._instance=null;
+			return AppCommandManager;
+		})();
+		AppCommand.AppCommandManager=AppCommandManager;
+
+		var AppCommandInvokedEventArgs=(function () {
+			function AppCommandInvokedEventArgs(appCommandId, callbackName, eventObjStr) {
+				this.type=Microsoft.Office.WebExtension.EventType.AppCommandInvoked;
+				this.appCommandId=appCommandId;
+				this.callbackName=callbackName;
+				this.eventObjStr=eventObjStr;
+			}
+			AppCommandInvokedEventArgs.create=function (eventProperties) {
+				return new AppCommandInvokedEventArgs(eventProperties[AppCommand.AppCommandInvokedEventEnums.AppCommandId], eventProperties[AppCommand.AppCommandInvokedEventEnums.CallbackName], eventProperties[AppCommand.AppCommandInvokedEventEnums.EventObjStr]);
+			};
+			return AppCommandInvokedEventArgs;
+		})();
+		AppCommand.AppCommandInvokedEventArgs=AppCommandInvokedEventArgs;
+
+		var AppCommandCallbackEventArgs=(function () {
+			function AppCommandCallbackEventArgs() {
+			}
+			return AppCommandCallbackEventArgs;
+		})();
+		AppCommand.AppCommandCallbackEventArgs=AppCommandCallbackEventArgs;
+
+		AppCommand.AppCommandInvokedEventEnums={
+			AppCommandId: "appCommandId",
+			CallbackName: "callbackName",
+			EventObjStr: "eventObjStr"
+		};
+	})(OfficeExt.AppCommand || (OfficeExt.AppCommand={}));
+	var AppCommand=OfficeExt.AppCommand;
+})(OfficeExt || (OfficeExt={}));
+
+OfficeExt.AppCommand.AppCommandManager.initializeOsfDda();
+var OfficeExt;
+(function (OfficeExt) {
+	(function (AppCommand) {
+		function registerDdaFacade() {
+			if (OSF.DDA.SafeArray) {
+				var parameterMap=OSF.DDA.SafeArray.Delegate.ParameterMap;
+
+				parameterMap.define({
+					type: OSF.DDA.MethodDispId.dispidAppCommandInvocationCompletedMethod,
+					toHost: [
+						{ name: Microsoft.Office.WebExtension.Parameters.Id, value: 0 },
+						{ name: Microsoft.Office.WebExtension.Parameters.Status, value: 1 },
+						{ name: Microsoft.Office.WebExtension.Parameters.Data, value: 2 }
+					]
+				});
+
+				parameterMap.define({
+					type: OSF.DDA.EventDispId.dispidAppCommandInvokedEvent,
+					fromHost: [
+						{ name: OSF.DDA.EventDescriptors.AppCommandInvokedEvent, value: parameterMap.self }
+					],
+					isComplexType: true
+				});
+
+				parameterMap.define({
+					type: OSF.DDA.EventDescriptors.AppCommandInvokedEvent,
+					fromHost: [
+						{ name: OfficeExt.AppCommand.AppCommandInvokedEventEnums.AppCommandId, value: 0 },
+						{ name: OfficeExt.AppCommand.AppCommandInvokedEventEnums.CallbackName, value: 1 },
+						{ name: OfficeExt.AppCommand.AppCommandInvokedEventEnums.EventObjStr, value: 2 }
+					],
+					isComplexType: true
+				});
+			}
+		}
+		AppCommand.registerDdaFacade=registerDdaFacade;
+	})(OfficeExt.AppCommand || (OfficeExt.AppCommand={}));
+	var AppCommand=OfficeExt.AppCommand;
+})(OfficeExt || (OfficeExt={}));
+OSF.OUtil.augmentList(Microsoft.Office.WebExtension.CoercionType, { Image: "image" });
+OSF.DDA.SafeArray.Delegate.ParameterMap.define({
+	type: Microsoft.Office.WebExtension.Parameters.CoercionType,
+	toHost: [
+		{ name: Microsoft.Office.WebExtension.CoercionType.Image, value: 8 }
+	]
+});
 OSF.DDA.ExcelDocument=function OSF_DDA_ExcelDocument(officeAppContext, settings) {
 	var bf=new OSF.DDA.BindingFacade(this);
 	OSF.DDA.DispIdHost.addAsyncMethods(bf, [OSF.DDA.AsyncMethodNames.AddFromPromptAsync]);
@@ -6283,12 +6709,69 @@ OSF.DDA.ExcelDocument=function OSF_DDA_ExcelDocument(officeAppContext, settings)
 
 OSF.OUtil.extend(OSF.DDA.ExcelDocument, OSF.DDA.JsomDocument);
 
+OSF.InitializationHelper.prototype.prepareRightAfterWebExtensionInitialize=function OSF_InitializationHelper$prepareRightAfterWebExtensionInitialize() {
+	var appCommandHandler=OfficeExt.AppCommand.AppCommandManager.instance();
+	appCommandHandler.initializeAndChangeOnce();
+};
+
 OSF.InitializationHelper.prototype.loadAppSpecificScriptAndCreateOM=function OSF_InitializationHelper$loadAppSpecificScriptAndCreateOM(appContext, appReady, basePath) {
 	OSF.DDA.ErrorCodeManager.initializeErrorMessages(Strings.OfficeOM);
 	appContext.doc=new OSF.DDA.ExcelDocument(appContext, this._initializeSettings(false));
 	OSF.DDA.DispIdHost.addAsyncMethods(OSF.DDA.RichApi, [OSF.DDA.AsyncMethodNames.ExecuteRichApiRequestAsync]);
 	appReady();
 };
+
+(function () {
+	OSF.DDA.AsyncMethodCalls.define({
+		method: OSF.DDA.AsyncMethodNames.SetSelectedDataAsync,
+		requiredArguments: [
+			{
+				"name": Microsoft.Office.WebExtension.Parameters.Data,
+				"types": ["string", "object", "number", "boolean"]
+			}
+		],
+		supportedOptions: [
+			{
+				name: Microsoft.Office.WebExtension.Parameters.CoercionType,
+				value: {
+					"enum": Microsoft.Office.WebExtension.CoercionType,
+					"calculate": function (requiredArgs) {
+						return OSF.DDA.DataCoercion.determineCoercionType(requiredArgs[Microsoft.Office.WebExtension.Parameters.Data]);
+					}
+				}
+			},
+			{
+				name: Microsoft.Office.WebExtension.Parameters.CellFormat,
+				value: {
+					"types": ["number", "object"],
+					"defaultValue": []
+				}
+			},
+			{
+				name: Microsoft.Office.WebExtension.Parameters.TableOptions,
+				value: {
+					"types": ["number", "object"],
+					"defaultValue": []
+				}
+			},
+			{
+				name: Microsoft.Office.WebExtension.Parameters.ImageWidth,
+				value: {
+					"types": ["number", "boolean"],
+					"defaultValue": false
+				}
+			},
+			{
+				name: Microsoft.Office.WebExtension.Parameters.ImageHeight,
+				value: {
+					"types": ["number", "boolean"],
+					"defaultValue": false
+				}
+			}
+		],
+		privateStateCallbacks: []
+	});
+})();
 
 var OfficeExtension;
 (function (OfficeExtension) {
@@ -7107,10 +7590,6 @@ var OfficeExtension;
 			};
 			objectPathInfo.ArgumentInfo.Arguments=[index];
 			return new OfficeExtension.ObjectPath(objectPathInfo, parent._objectPath, false, false);
-		};
-		ObjectPathFactory.createReferenceIdObjectPath=function (context, referenceId) {
-			var objectPathInfo={ Id: context._nextId(), ObjectPathType: 6 , Name: referenceId };
-			return new OfficeExtension.ObjectPath(objectPathInfo, null, false, false);
 		};
 		return ObjectPathFactory;
 	})();
@@ -7987,6 +8466,9 @@ var OfficeExtension;
 		function Utility() {
 		}
 		Utility.checkArgumentNull=function (value, name) {
+			if (Utility.isNullOrUndefined(value)) {
+				Utility.throwError(OfficeExtension.ResourceStrings.invalidArgument, name);
+			}
 		};
 		Utility.isNullOrUndefined=function (value) {
 			if (value===null) {
@@ -8040,6 +8522,15 @@ var OfficeExtension;
 			}
 			var referencedObjectPaths=new Array();
 			var referencedObjectPathIds=new Array();
+			var hasOne=Utility.collectObjectPathInfos(context, args, referencedObjectPaths, referencedObjectPathIds);
+			argumentInfo.Arguments=args;
+			if (hasOne) {
+				argumentInfo.ReferencedObjectPathIds=referencedObjectPathIds;
+				return referencedObjectPaths;
+			}
+			return null;
+		};
+		Utility.collectObjectPathInfos=function (context, args, referencedObjectPaths, referencedObjectPathIds) {
 			var hasOne=false;
 			for (var i=0; i < args.length; i++) {
 				if (args[i] instanceof OfficeExtension.ClientObject) {
@@ -8050,16 +8541,22 @@ var OfficeExtension;
 					referencedObjectPaths.push(clientObject._objectPath);
 					hasOne=true;
 				}
+				else if (Array.isArray(args[i])) {
+					var childArrayObjectPathIds=new Array();
+					var childArrayHasOne=Utility.collectObjectPathInfos(context, args[i], referencedObjectPaths, childArrayObjectPathIds);
+					if (childArrayHasOne) {
+						referencedObjectPathIds.push(childArrayObjectPathIds);
+						hasOne=true;
+					}
+					else {
+						referencedObjectPathIds.push(0);
+					}
+				}
 				else {
 					referencedObjectPathIds.push(0);
 				}
 			}
-			argumentInfo.Arguments=args;
-			if (hasOne) {
-				argumentInfo.ReferencedObjectPathIds=referencedObjectPathIds;
-				return referencedObjectPaths;
-			}
-			return null;
+			return hasOne;
 		};
 		Utility.fixObjectPathIfNecessary=function (clientObject, value) {
 			if (clientObject && clientObject._objectPath && value) {
@@ -9771,9 +10268,6 @@ var Excel;
 			configurable: true
 		});
 		ChartCollection.prototype.add=function (type, sourceData, seriesBy) {
-			if (!(sourceData instanceof Range)) {
-				throw OfficeExtension.Utility.createRuntimeError(OfficeExtension.ResourceStrings.invalidArgument, "sourceData", "Charts.Add");
-			}
 			return new Excel.Chart(this.context, _createMethodObjectPath(this.context, this, "Add", 0 , [type, sourceData, seriesBy], false, true));
 		};
 		ChartCollection.prototype.getItem=function (name) {
@@ -9947,9 +10441,6 @@ var Excel;
 			_createMethodAction(this.context, this, "Delete", 0 , []);
 		};
 		Chart.prototype.setData=function (sourceData, seriesBy) {
-			if (!(sourceData instanceof Range)) {
-				throw OfficeExtension.Utility.createRuntimeError(OfficeExtension.ResourceStrings.invalidArgument, "sourceData", "Chart.setData");
-			}
 			_createMethodAction(this.context, this, "SetData", 0 , [sourceData, seriesBy]);
 		};
 		Chart.prototype.setPosition=function (startCell, endCell) {
