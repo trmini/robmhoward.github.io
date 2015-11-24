@@ -1,5 +1,5 @@
 /* PowerPoint specific API library */
-/* Version: 15.0.4764.1000 */
+/* Version: 15.0.4777.3000 */
 /*
 	Copyright (c) Microsoft Corporation.  All rights reserved.
 */
@@ -190,7 +190,9 @@ OSF.DDA.CustomXmlNode=function OSF_DDA_CustomXmlNode(handle, nodeType, ns, baseN
 			am.GetNodeValueAsync,
 			am.GetNodeXmlAsync,
 			am.SetNodeValueAsync,
-			am.SetNodeXmlAsync
+			am.SetNodeXmlAsync,
+			am.GetNodeTextAsync,
+			am.SetNodeTextAsync
 		],
 		handle
 	);
@@ -246,7 +248,8 @@ OSF.OUtil.redefineList(Microsoft.Office.WebExtension.FileType, {
 });
 OSF.OUtil.redefineList(Microsoft.Office.WebExtension.CoercionType, {
 	Text: "text",
-	SlideRange: "slideRange"
+	SlideRange: "slideRange",
+	Image: "image"
 });
 OSF.OUtil.redefineList(Microsoft.Office.WebExtension.EventType, {
 	DocumentSelectionChanged: "documentSelectionChanged",
@@ -630,7 +633,8 @@ OSF.DDA.SafeArray.Delegate.ParameterMap=(function () {
 			{ name: ns.Table, value: 2 },
 			{ name: ns.Html, value: 3 },
 			{ name: ns.Ooxml, value: 4 },
-			{ name: ns.SlideRange, value:7 }
+			{ name: ns.SlideRange, value:7 },
+			{ name: ns.Image, value:8 }
 		]
 	});
 	ns=Microsoft.Office.WebExtension.GoToType;
@@ -766,7 +770,11 @@ OSF.DDA.SafeArray.Delegate.ParameterMap=(function () {
 		type: cns.dispidSetSelectedDataMethod,
 		toHost: [
 			{ name: ns.CoercionType, value: 0 },
-			{ name: ns.Data, value: 1 }
+			{ name: ns.Data, value: 1 },
+			{ name: ns.ImageLeft, value: 2 },
+			{ name: ns.ImageTop, value: 3 },
+			{ name: ns.ImageWidth, value: 4 },
+			{ name: ns.ImageHeight, value: 5 }
 		]
 	});
 	define({
@@ -1064,6 +1072,22 @@ OSF.DDA.SafeArray.Delegate.ParameterMap=(function () {
 		toHost: [
 			{ name: OSF.DDA.DataPartProperties.Id, value: 0 },
 			{ name: ns.Namespace, value: 1 }
+		]
+	});
+	define({
+		type: cns.dispidGetDataNodeTextMethod,
+		fromHost: [
+			{ name: ns.Data, value: self}
+		],
+		toHost: [
+			{ name: OSF.DDA.DataNodeProperties.Handle, value: 0 }
+		]
+	});
+	define({
+		type: cns.dispidSetDataNodeTextMethod,
+		toHost: [
+			{ name: OSF.DDA.DataNodeProperties.Handle, value: 0 },
+			{ name: ns.Text, value: 1 }
 		]
 	});
 	define({
