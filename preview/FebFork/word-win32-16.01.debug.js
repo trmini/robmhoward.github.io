@@ -1,5 +1,5 @@
 /* Word specific JavaScript API library */
-/* Version: 16.0.6720.3006 */
+/* Version: 16.0.6807.1000 */
 /*
 	Copyright (c) Microsoft Corporation.  All rights reserved.
 */
@@ -2608,35 +2608,58 @@ OSF.DDA.DispIdHost.Facade=function OSF_DDA_DispIdHost_Facade(getDelegateMethods,
 			callArgs=asyncMethodCall.verifyAndExtractCall(suppliedArguments, caller, privateState);
 			var dispId=dispIdMap[methodName];
 			var delegate=getDelegateMethods(methodName);
-			var hostCallArgs;
-			if (parameterMap.toHost) {
-				hostCallArgs=parameterMap.toHost(dispId, callArgs);
+			var richApiInExcelMethodSubstitution=null;
+			if (window.Excel && window.Excel._RedirectV1APIs && (richApiInExcelMethodSubstitution=window.Excel._V1APIMap[methodName])) {
+				var ctx=new window.Excel.RequestContext();
+				var result=richApiInExcelMethodSubstitution.call(ctx, callArgs);
+				ctx.sync()
+					.then(function () {
+					var response=result.value;
+					var status=response.status;
+					delete response["status"];
+					delete response["@odata.type"];
+					if (richApiInExcelMethodSubstitution.postprocess) {
+						response=richApiInExcelMethodSubstitution.postprocess(response, callArgs);
+					}
+					if (status !=0) {
+						response=OSF.DDA.ErrorCodeManager.getErrorArgs(status);
+					}
+					OSF.DDA.issueAsyncResult(callArgs, status, response);
+				})["catch"](function (error) {
+					OSF.DDA.issueAsyncResult(callArgs, OSF.DDA.ErrorCodeManager.errorCodes.ooeFailure, null);
+				});
 			}
 			else {
-				hostCallArgs=callArgs;
-			}
-			delegate[OSF.DDA.DispIdHost.Delegates.ExecuteAsync]({
-				"dispId": dispId,
-				"hostCallArgs": hostCallArgs,
-				"onCalling": function OSF_DDA_DispIdFacade$Execute_onCalling() { OSF.OUtil.writeProfilerMark(OSF.HostCallPerfMarker.IssueCall); },
-				"onReceiving": function OSF_DDA_DispIdFacade$Execute_onReceiving() { OSF.OUtil.writeProfilerMark(OSF.HostCallPerfMarker.ReceiveResponse); },
-				"onComplete": function (status, hostResponseArgs) {
-					var responseArgs;
-					if (status==OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
-						if (parameterMap.fromHost) {
-							responseArgs=parameterMap.fromHost(dispId, hostResponseArgs);
+				var hostCallArgs;
+				if (parameterMap.toHost) {
+					hostCallArgs=parameterMap.toHost(dispId, callArgs);
+				}
+				else {
+					hostCallArgs=callArgs;
+				}
+				delegate[OSF.DDA.DispIdHost.Delegates.ExecuteAsync]({
+					"dispId": dispId,
+					"hostCallArgs": hostCallArgs,
+					"onCalling": function OSF_DDA_DispIdFacade$Execute_onCalling() { OSF.OUtil.writeProfilerMark(OSF.HostCallPerfMarker.IssueCall); },
+					"onReceiving": function OSF_DDA_DispIdFacade$Execute_onReceiving() { OSF.OUtil.writeProfilerMark(OSF.HostCallPerfMarker.ReceiveResponse); },
+					"onComplete": function (status, hostResponseArgs) {
+						var responseArgs;
+						if (status==OSF.DDA.ErrorCodeManager.errorCodes.ooeSuccess) {
+							if (parameterMap.fromHost) {
+								responseArgs=parameterMap.fromHost(dispId, hostResponseArgs);
+							}
+							else {
+								responseArgs=hostResponseArgs;
+							}
 						}
 						else {
 							responseArgs=hostResponseArgs;
 						}
+						var payload=asyncMethodCall.processResponse(status, responseArgs, caller, callArgs);
+						OSF.DDA.issueAsyncResult(callArgs, status, payload);
 					}
-					else {
-						responseArgs=hostResponseArgs;
-					}
-					var payload=asyncMethodCall.processResponse(status, responseArgs, caller, callArgs);
-					OSF.DDA.issueAsyncResult(callArgs, status, payload);
-				}
-			});
+				});
+			}
 		}
 		catch (ex) {
 			onException(ex, asyncMethodCall, suppliedArguments, callArgs);
@@ -2878,367 +2901,16 @@ OSF.DDA.DispIdHost.addEventSupport=function OSF_DDA_DispIdHost$AddEventSupport(t
 		});
 	}
 };
-var OfficeExt;
-(function (OfficeExt) {
-	var MsAjaxTypeHelper=(function () {
-		function MsAjaxTypeHelper() {
-		}
-		MsAjaxTypeHelper.isInstanceOfType=function (type, instance) {
-			if (typeof (instance)==="undefined" || instance===null)
-				return false;
-			if (instance instanceof type)
-				return true;
-			var instanceType=instance.constructor;
-			if (!instanceType || (typeof (instanceType) !=="function") || instanceType.__typeName==='Object') {
-				instanceType=Object;
+if (!OsfMsAjaxFactory.isMsAjaxLoaded()) {
+	if (!(OSF._OfficeAppFactory && OSF._OfficeAppFactory && OSF._OfficeAppFactory.getLoadScriptHelper && OSF._OfficeAppFactory.getLoadScriptHelper().isScriptLoading(OSF.ConstantNames.MicrosoftAjaxId))) {
+		var msAjaxCDNPath=(window.location.protocol.toLowerCase()==='https:' ? 'https:' : 'http:')+'//ajax.aspnetcdn.com/ajax/3.5/MicrosoftAjax.js';
+		OsfMsAjaxFactory.loadMsAjaxFull(function OSF$loadMSAjaxCallback() {
+			if (!OsfMsAjaxFactory.isMsAjaxLoaded()) {
+				throw 'Not able to load MicrosoftAjax.js.';
 			}
-			return !!(instanceType===type) ||
-				(instanceType.inheritsFrom && instanceType.inheritsFrom(type)) ||
-				(instanceType.implementsInterface && instanceType.implementsInterface(type));
-		};
-		return MsAjaxTypeHelper;
-	})();
-	OfficeExt.MsAjaxTypeHelper=MsAjaxTypeHelper;
-	var MsAjaxError=(function () {
-		function MsAjaxError() {
-		}
-		MsAjaxError.create=function (message, errorInfo) {
-			var err=new Error(message);
-			err.message=message;
-			if (errorInfo) {
-				for (var v in errorInfo) {
-					err[v]=errorInfo[v];
-				}
-			}
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.parameterCount=function (message) {
-			var displayMessage="Sys.ParameterCountException: "+(message ? message : "Parameter count mismatch.");
-			var err=MsAjaxError.create(displayMessage, { name: 'Sys.ParameterCountException' });
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.argument=function (paramName, message) {
-			var displayMessage="Sys.ArgumentException: "+(message ? message : "Value does not fall within the expected range.");
-			if (paramName) {
-				displayMessage+="\n"+MsAjaxString.format("Parameter name: {0}", paramName);
-			}
-			var err=MsAjaxError.create(displayMessage, { name: "Sys.ArgumentException", paramName: paramName });
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.argumentNull=function (paramName, message) {
-			var displayMessage="Sys.ArgumentNullException: "+(message ? message : "Value cannot be null.");
-			if (paramName) {
-				displayMessage+="\n"+MsAjaxString.format("Parameter name: {0}", paramName);
-			}
-			var err=MsAjaxError.create(displayMessage, { name: "Sys.ArgumentNullException", paramName: paramName });
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.argumentOutOfRange=function (paramName, actualValue, message) {
-			var displayMessage="Sys.ArgumentOutOfRangeException: "+(message ? message : "Specified argument was out of the range of valid values.");
-			if (paramName) {
-				displayMessage+="\n"+MsAjaxString.format("Parameter name: {0}", paramName);
-			}
-			if (typeof (actualValue) !=="undefined" && actualValue !==null) {
-				displayMessage+="\n"+MsAjaxString.format("Actual value was {0}.", actualValue);
-			}
-			var err=MsAjaxError.create(displayMessage, {
-				name: "Sys.ArgumentOutOfRangeException",
-				paramName: paramName,
-				actualValue: actualValue
-			});
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.argumentType=function (paramName, actualType, expectedType, message) {
-			var displayMessage="Sys.ArgumentTypeException: ";
-			if (message) {
-				displayMessage+=message;
-			}
-			else if (actualType && expectedType) {
-				displayMessage+=MsAjaxString.format("Object of type '{0}' cannot be converted to type '{1}'.", actualType.getName ? actualType.getName() : actualType, expectedType.getName ? expectedType.getName() : expectedType);
-			}
-			else {
-				displayMessage+="Object cannot be converted to the required type.";
-			}
-			if (paramName) {
-				displayMessage+="\n"+MsAjaxString.format("Parameter name: {0}", paramName);
-			}
-			var err=MsAjaxError.create(displayMessage, {
-				name: "Sys.ArgumentTypeException",
-				paramName: paramName,
-				actualType: actualType,
-				expectedType: expectedType
-			});
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.argumentUndefined=function (paramName, message) {
-			var displayMessage="Sys.ArgumentUndefinedException: "+(message ? message : "Value cannot be undefined.");
-			if (paramName) {
-				displayMessage+="\n"+MsAjaxString.format("Parameter name: {0}", paramName);
-			}
-			var err=MsAjaxError.create(displayMessage, { name: "Sys.ArgumentUndefinedException", paramName: paramName });
-			err.popStackFrame();
-			return err;
-		};
-		MsAjaxError.invalidOperation=function (message) {
-			var displayMessage="Sys.InvalidOperationException: "+(message ? message : "Operation is not valid due to the current state of the object.");
-			var err=MsAjaxError.create(displayMessage, { name: 'Sys.InvalidOperationException' });
-			err.popStackFrame();
-			return err;
-		};
-		return MsAjaxError;
-	})();
-	OfficeExt.MsAjaxError=MsAjaxError;
-	var MsAjaxString=(function () {
-		function MsAjaxString() {
-		}
-		MsAjaxString.format=function (format) {
-			var args=[];
-			for (var _i=1; _i < arguments.length; _i++) {
-				args[_i - 1]=arguments[_i];
-			}
-			var source=format;
-			return source.replace(/{(\d+)}/gm, function (match, number) {
-				var index=parseInt(number, 10);
-				return args[index]===undefined ? '{'+number+'}' : args[index];
-			});
-		};
-		MsAjaxString.startsWith=function (str, prefix) {
-			return (str.substr(0, prefix.length)===prefix);
-		};
-		return MsAjaxString;
-	})();
-	OfficeExt.MsAjaxString=MsAjaxString;
-	var MsAjaxDebug=(function () {
-		function MsAjaxDebug() {
-		}
-		MsAjaxDebug.trace=function (text) {
-			if (typeof Debug !=="undefined" && Debug.writeln)
-				Debug.writeln(text);
-			if (window.console && window.console.log)
-				window.console.log(text);
-			if (window.opera && window.opera.postError)
-				window.opera.postError(text);
-			if (window.debugService && window.debugService.trace)
-				window.debugService.trace(text);
-			var a=document.getElementById("TraceConsole");
-			if (a && a.tagName.toUpperCase()==="TEXTAREA") {
-				a.innerHTML+=text+"\n";
-			}
-		};
-		return MsAjaxDebug;
-	})();
-	OfficeExt.MsAjaxDebug=MsAjaxDebug;
-	if (!OsfMsAjaxFactory.isMsAjaxLoaded()) {
-		if (!Function.createCallback) {
-			Function.createCallback=function Function$createCallback(method, context) {
-				var e=Function._validateParams(arguments, [
-					{ name: "method", type: Function },
-					{ name: "context", mayBeNull: true }
-				]);
-				if (e)
-					throw e;
-				return function () {
-					var l=arguments.length;
-					if (l > 0) {
-						var args=[];
-						for (var i=0; i < l; i++) {
-							args[i]=arguments[i];
-						}
-						args[l]=context;
-						return method.apply(this, args);
-					}
-					return method.call(this, context);
-				};
-			};
-		}
-		if (!Function.createDelegate) {
-			Function.createDelegate=function Function$createDelegate(instance, method) {
-				var e=Function._validateParams(arguments, [
-					{ name: "instance", mayBeNull: true },
-					{ name: "method", type: Function }
-				]);
-				if (e)
-					throw e;
-				return function () {
-					return method.apply(instance, arguments);
-				};
-			};
-		}
-		if (!Function._validateParams) {
-			Function._validateParams=function (params, expectedParams, validateParameterCount) {
-				var e, expectedLength=expectedParams.length;
-				validateParameterCount=validateParameterCount || (typeof (validateParameterCount)==="undefined");
-				e=Function._validateParameterCount(params, expectedParams, validateParameterCount);
-				if (e) {
-					e.popStackFrame();
-					return e;
-				}
-				for (var i=0, l=params.length; i < l; i++) {
-					var expectedParam=expectedParams[Math.min(i, expectedLength - 1)], paramName=expectedParam.name;
-					if (expectedParam.parameterArray) {
-						paramName+="["+(i - expectedLength+1)+"]";
-					}
-					else if (!validateParameterCount && (i >=expectedLength)) {
-						break;
-					}
-					e=Function._validateParameter(params[i], expectedParam, paramName);
-					if (e) {
-						e.popStackFrame();
-						return e;
-					}
-				}
-				return null;
-			};
-		}
-		if (!Function._validateParameterCount) {
-			Function._validateParameterCount=function (params, expectedParams, validateParameterCount) {
-				var i, error, expectedLen=expectedParams.length, actualLen=params.length;
-				if (actualLen < expectedLen) {
-					var minParams=expectedLen;
-					for (i=0; i < expectedLen; i++) {
-						var param=expectedParams[i];
-						if (param.optional || param.parameterArray) {
-							minParams--;
-						}
-					}
-					if (actualLen < minParams) {
-						error=true;
-					}
-				}
-				else if (validateParameterCount && (actualLen > expectedLen)) {
-					error=true;
-					for (i=0; i < expectedLen; i++) {
-						if (expectedParams[i].parameterArray) {
-							error=false;
-							break;
-						}
-					}
-				}
-				if (error) {
-					var e=MsAjaxError.parameterCount();
-					e.popStackFrame();
-					return e;
-				}
-				return null;
-			};
-		}
-		if (!Function._validateParameter) {
-			Function._validateParameter=function (param, expectedParam, paramName) {
-				var e, expectedType=expectedParam.type, expectedInteger=!!expectedParam.integer, expectedDomElement=!!expectedParam.domElement, mayBeNull=!!expectedParam.mayBeNull;
-				e=Function._validateParameterType(param, expectedType, expectedInteger, expectedDomElement, mayBeNull, paramName);
-				if (e) {
-					e.popStackFrame();
-					return e;
-				}
-				var expectedElementType=expectedParam.elementType, elementMayBeNull=!!expectedParam.elementMayBeNull;
-				if (expectedType===Array && typeof (param) !=="undefined" && param !==null &&
-					(expectedElementType || !elementMayBeNull)) {
-					var expectedElementInteger=!!expectedParam.elementInteger, expectedElementDomElement=!!expectedParam.elementDomElement;
-					for (var i=0; i < param.length; i++) {
-						var elem=param[i];
-						e=Function._validateParameterType(elem, expectedElementType, expectedElementInteger, expectedElementDomElement, elementMayBeNull, paramName+"["+i+"]");
-						if (e) {
-							e.popStackFrame();
-							return e;
-						}
-					}
-				}
-				return null;
-			};
-		}
-		if (!Function._validateParameterType) {
-			Function._validateParameterType=function (param, expectedType, expectedInteger, expectedDomElement, mayBeNull, paramName) {
-				var e, i;
-				if (typeof (param)==="undefined") {
-					if (mayBeNull) {
-						return null;
-					}
-					else {
-						e=OfficeExt.MsAjaxError.argumentUndefined(paramName);
-						e.popStackFrame();
-						return e;
-					}
-				}
-				if (param===null) {
-					if (mayBeNull) {
-						return null;
-					}
-					else {
-						e=OfficeExt.MsAjaxError.argumentNull(paramName);
-						e.popStackFrame();
-						return e;
-					}
-				}
-				if (expectedType && !OfficeExt.MsAjaxTypeHelper.isInstanceOfType(expectedType, param)) {
-					e=OfficeExt.MsAjaxError.argumentType(paramName, typeof (param), expectedType);
-					e.popStackFrame();
-					return e;
-				}
-				return null;
-			};
-		}
-		if (!window.Type) {
-			window.Type=Function;
-		}
-		if (!Type.registerNamespace) {
-			Type.registerNamespace=function (ns) {
-				var namespaceParts=ns.split('.');
-				var currentNamespace=window;
-				for (var i=0; i < namespaceParts.length; i++) {
-					currentNamespace[namespaceParts[i]]=currentNamespace[namespaceParts[i]] || {};
-					currentNamespace=currentNamespace[namespaceParts[i]];
-				}
-			};
-		}
-		if (!Type.prototype.registerClass) {
-			Type.prototype.registerClass=function (cls) { cls={}; };
-		}
-		if (typeof (Sys)==="undefined") {
-			Type.registerNamespace('Sys');
-		}
-		if (!Error.prototype.popStackFrame) {
-			Error.prototype.popStackFrame=function () {
-				if (arguments.length !==0)
-					throw MsAjaxError.parameterCount();
-				if (typeof (this.stack)==="undefined" || this.stack===null ||
-					typeof (this.fileName)==="undefined" || this.fileName===null ||
-					typeof (this.lineNumber)==="undefined" || this.lineNumber===null) {
-					return;
-				}
-				var stackFrames=this.stack.split("\n");
-				var currentFrame=stackFrames[0];
-				var pattern=this.fileName+":"+this.lineNumber;
-				while (typeof (currentFrame) !=="undefined" &&
-					currentFrame !==null &&
-					currentFrame.indexOf(pattern)===-1) {
-					stackFrames.shift();
-					currentFrame=stackFrames[0];
-				}
-				var nextFrame=stackFrames[1];
-				if (typeof (nextFrame)==="undefined" || nextFrame===null) {
-					return;
-				}
-				var nextFrameParts=nextFrame.match(/@(.*):(\d+)$/);
-				if (typeof (nextFrameParts)==="undefined" || nextFrameParts===null) {
-					return;
-				}
-				this.fileName=nextFrameParts[1];
-				this.lineNumber=parseInt(nextFrameParts[2]);
-				stackFrames.shift();
-				this.stack=stackFrames.join("\n");
-			};
-		}
-		OsfMsAjaxFactory.msAjaxError=MsAjaxError;
-		OsfMsAjaxFactory.msAjaxString=MsAjaxString;
-		OsfMsAjaxFactory.msAjaxDebug=MsAjaxDebug;
+		});
 	}
-})(OfficeExt || (OfficeExt={}));
+}
 OSF.OUtil.setNamespace("SafeArray", OSF.DDA);
 OSF.DDA.SafeArray.Response={
 	Status: 0,
